@@ -4,12 +4,13 @@ export interface MentorReview {
   id?: string;
   mentorId: string;
   studentId: string;
-  projectId: string;
-  submissionId: string;
-  rating: number;       // 1-5
+  tenantId: string;
+  cohortId: string;
+  rating: number;       // 0-5 (decimal)
   feedback?: string;
-  status?: string;      // default 'APPROVED'
+  reviewDate?: Date;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // Optional: interface for updating a review
@@ -17,5 +18,4 @@ export interface MentorReviewUpdate {
   id: string;
   rating?: number;
   feedback?: string;
-  status?: string;
 }

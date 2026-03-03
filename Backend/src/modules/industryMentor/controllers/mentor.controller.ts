@@ -64,10 +64,13 @@ export class MentorController {
   async submitReview(req: AuthRequest, res: Response): Promise<void> {
     try {
       const reviewData = {
-        ...req.body,
         mentorId: req.user!.id,
+        studentId: req.body.studentId,
         tenantId: req.user!.tenantId,
+        rating: req.body.rating,
+        feedback: req.body.feedback,
       };
+      
       const review = await mentorService.submitReview(reviewData);
       res.status(201).json({ success: true, data: review });
     } catch (error: any) {

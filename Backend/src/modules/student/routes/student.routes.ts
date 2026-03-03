@@ -16,6 +16,10 @@ router.get("/dashboard", roleMiddleware(["student"]), (req, res) => dashboardCon
 router.get("/notifications", roleMiddleware(["student"]), (req, res) => dashboardController.getNotifications(req, res));
 router.patch("/notifications/:id/read", roleMiddleware(["student"]), (req, res) => dashboardController.markNotificationRead(req, res));
 
+// Attendance
+router.post("/attendance", roleMiddleware(["student"]), (req, res) => dashboardController.markAttendance(req, res));
+router.get("/today-sessions", roleMiddleware(["student"]), (req, res) => dashboardController.getTodaySessions(req, res));
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),

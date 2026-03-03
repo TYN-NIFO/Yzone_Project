@@ -6,17 +6,16 @@ class MentorReviewRepository {
   static async create(review: MentorReview) {
     const result = await pool.query(
       `INSERT INTO mentor_reviews
-        (mentor_id, student_id, project_id, submission_id, rating, feedback, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
+        (mentor_id, student_id, tenant_id, cohort_id, rating, feedback)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
         review.mentorId,
         review.studentId,
-        review.projectId,
-        review.submissionId,
+        review.tenantId,
+        review.cohortId,
         review.rating,
-        review.feedback || null,
-        review.status || 'APPROVED'
+        review.feedback || null
       ]
     );
     return result.rows[0];

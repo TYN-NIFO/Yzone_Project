@@ -4,10 +4,14 @@ import { Cohort } from "../types/cohort.types";
 export class CohortRepo {
   async createCohort(data: Cohort) {
     const { tenantId, name, startDate, endDate } = data;
+    
+    // Generate a cohort code if not provided
+    const cohortCode = (data as any).cohortCode || `COH${Date.now().toString().slice(-6)}`;
+    
     const result = await pool.query(
-      `INSERT INTO cohorts (tenant_id, name, start_date, end_date) 
-       VALUES ($1,$2,$3,$4) RETURNING *`,
-      [tenantId, name, startDate, endDate]
+      `INSERT INTO cohorts (tenant_id, name, cohort_code, start_date, end_date) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [tenantId, name, cohortCode, startDate, endDate]
     );
     return result.rows[0];
   }

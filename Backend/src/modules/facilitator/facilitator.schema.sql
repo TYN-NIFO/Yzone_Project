@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS cohorts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
+  cohort_code VARCHAR(50),
   start_date DATE,
   end_date DATE
 );
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS projects (
 
 -- session table
 CREATE TABLE IF NOT EXISTS sessions(
- id UUID PRIMARY KEY,
+ id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
  cohort_id UUID NOT NULL,
  title TEXT NOT NULL,
  session_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -46,16 +47,15 @@ CREATE TABLE IF NOT EXISTS sessions(
 );
 
 CREATE TABLE IF NOT EXISTS attendance(
- id UUID PRIMARY KEY,
+ id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
  session_id UUID NOT NULL,
  student_id UUID NOT NULL,
- status TEXT CHECK (status IN ('PRESENT','ABSENT')),
- reason TEXT,
+ is_present BOOLEAN DEFAULT false,
  marked_by UUID NOT NULL,
  marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
- FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+ FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
 
  UNIQUE(session_id, student_id)
 );

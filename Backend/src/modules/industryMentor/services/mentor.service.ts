@@ -91,7 +91,23 @@ export class MentorService {
   }
 
   async submitReview(data: any) {
-    const { mentorId, studentId, tenantId, cohortId, rating, feedback } = data;
+    const { mentorId, studentId, tenantId, rating, feedback } = data;
+
+    // Get student's cohort_id
+    const studentResult = await pool.query(
+      'SELECT cohort_id FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [studentId]
+    );
+
+    if (studentResult.rows.length === 0) {
+      throw new Error('Student not found');
+    }
+
+    const cohortId = studentResult.rows[0].cohort_id;
+
+    if (!cohortId) {
+      throw new Error('Student is not assigned to a cohort');
+    }
 
     const result = await pool.query(
       `INSERT INTO mentor_reviews (mentor_id, student_id, tenant_id, cohort_id, rating, feedback)

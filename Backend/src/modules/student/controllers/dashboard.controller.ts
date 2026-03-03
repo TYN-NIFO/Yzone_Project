@@ -111,4 +111,48 @@ export class StudentDashboardController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  async markAttendance(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { sessionId, location, timestamp } = req.body;
+      const studentId = req.user!.id;
+      const tenantId = req.user!.tenantId;
+      const cohortId = req.user!.cohortId;
+
+      const result = await pool.query(
+        `INSERT INTO attendance (session_id, student_id, cohort_id, tenant_id, is_present, marked_at, location_lat, location_lng)
+         VALUES ($1, $2, $3, $4, true, $5, $6, $7)
+         ON CONFLICT (session_id, student_id) DO UPDATE SET
+           is_present = true,
+           marked_at = $5,
+           location_lat = $6,
+           location_lng = $7
+         RETURNING *`,
+        [sessionId, studentId, cohortId, tenantId, timestamp, location?.lat, location?.lng]
+      );
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async getTodaySessions(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const cohortId = req.user!.cohortId;
+      const tenantId = req.user!.tenantId;
+
+      const sessions = await pool.query(
+        `SELECT id, title, session_type, start_time, end_time
+         FROM sessions
+         WHERE cohort_id = $1 AND tenant_id = $2 AND session_date = CURRENT_DATE
+         ORDER BY start_time`,
+        [cohortId, tenantId]
+      );
+
+      res.status(200).json({ success: true, data: sessions.rows });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }
