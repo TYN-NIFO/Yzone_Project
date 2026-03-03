@@ -7,16 +7,26 @@ import {
   Activity,
   CheckCircle,
   Clock,
-  LogOut
+  LogOut,
+  Plus,
+  UserCheck
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
+import CohortForm from '../../components/facilitator/CohortForm';
+import TeamForm from '../../components/facilitator/TeamForm';
+import ProjectForm from '../../components/facilitator/ProjectForm';
+import AttendanceForm from '../../components/facilitator/AttendanceForm';
 
 export default function FacilitatorDashboard() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [showCohortForm, setShowCohortForm] = useState(false);
+  const [showTeamForm, setShowTeamForm] = useState(false);
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [showAttendanceForm, setShowAttendanceForm] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -65,13 +75,43 @@ export default function FacilitatorDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Facilitator Dashboard</h1>
               <p className="text-sm text-gray-600 mt-1">Welcome back, {currentUser?.name}</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowAttendanceForm(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+              >
+                <UserCheck size={18} />
+                Mark Attendance
+              </button>
+              <button
+                onClick={() => setShowCohortForm(true)}
+                className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New Cohort
+              </button>
+              <button
+                onClick={() => setShowTeamForm(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New Team
+              </button>
+              <button
+                onClick={() => setShowProjectForm(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New Project
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -192,6 +232,32 @@ export default function FacilitatorDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      {showCohortForm && (
+        <CohortForm
+          onClose={() => setShowCohortForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
+      {showTeamForm && (
+        <TeamForm
+          onClose={() => setShowTeamForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
+      {showProjectForm && (
+        <ProjectForm
+          onClose={() => setShowProjectForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
+      {showAttendanceForm && (
+        <AttendanceForm
+          onClose={() => setShowAttendanceForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
     </div>
   );
 }

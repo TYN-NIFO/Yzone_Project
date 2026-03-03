@@ -8,42 +8,31 @@ interface CohortFormProps {
 
 export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
   const [tenants, setTenants] = useState<any[]>([]);
-  const [facilitators, setFacilitators] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     tenantId: '',
     name: '',
     cohortCode: '',
     startDate: '',
     endDate: '',
-    facilitatorId: '',
+    description: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadData();
+    loadTenants();
   }, []);
 
-  const loadData = async () => {
+  const loadTenants = async () => {
     try {
       const token = localStorage.getItem('token');
-      
-      const [tenantsRes, usersRes] = await Promise.all([
-        fetch('http://localhost:5000/api/executive/tenants', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }),
-        fetch('http://localhost:5000/api/users?role=facilitator', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }),
-      ]);
-
-      const tenantsData = await tenantsRes.json();
-      const usersData = await usersRes.json();
-
-      if (tenantsData.success) setTenants(tenantsData.data);
-      if (usersData.success) setFacilitators(usersData.data);
+      const response = await fetch('http://localhost:5000/api/facilitator/tenants', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success) setTenants(data.data);
     } catch (err) {
-      console.error('Failed to load data:', err);
+      console.error('Failed to load tenants:', err);
     }
   };
 
@@ -54,7 +43,7 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/executive/cohorts', {
+      const response = await fetch('http://localhost:5000/api/facilitator/cohorts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,15 +119,14 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cohort Code *
+              Cohort Code
             </label>
             <input
               type="text"
-              required
               value={formData.cohortCode}
               onChange={(e) => setFormData({ ...formData, cohortCode: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., B2026A"
+              placeholder="e.g., B2026A (auto-generated if empty)"
             />
           </div>
 
@@ -170,20 +158,15 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Facilitator
+              Description
             </label>
-            <select
-              value={formData.facilitatorId}
-              onChange={(e) => setFormData({ ...formData, facilitatorId: e.target.value })}
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Facilitator (Optional)</option>
-              {facilitators.map((facilitator) => (
-                <option key={facilitator.id} value={facilitator.id}>
-                  {facilitator.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Brief description of the cohort..."
+            />
           </div>
 
           <div className="flex gap-3 pt-4">

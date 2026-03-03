@@ -6,16 +6,20 @@ import {
   TrendingUp, 
   Activity,
   UserCheck,
-  LogOut
+  LogOut,
+  MessageSquare
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
+import FeedbackForm from '../../components/faculty/FeedbackForm';
 
 export default function FacultyDashboard() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -36,6 +40,17 @@ export default function FacultyDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleFeedback = (student: any) => {
+    setSelectedStudent(student);
+    setShowFeedbackForm(true);
+  };
+
+  const handleFeedbackSuccess = () => {
+    setShowFeedbackForm(false);
+    setSelectedStudent(null);
+    loadDashboard();
   };
 
   if (loading) {
@@ -158,6 +173,7 @@ export default function FacultyDashboard() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendance</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -171,6 +187,15 @@ export default function FacultyDashboard() {
                       {student.score ? Number(student.score).toFixed(1) : 'N/A'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
+                    <td className="px-4 py-3">
+                      <button 
+                        onClick={() => handleFeedback(student)}
+                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                      >
+                        <MessageSquare size={16} />
+                        Feedback
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -215,6 +240,18 @@ export default function FacultyDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      {showFeedbackForm && selectedStudent && (
+        <FeedbackForm
+          student={selectedStudent}
+          onClose={() => {
+            setShowFeedbackForm(false);
+            setSelectedStudent(null);
+          }}
+          onSuccess={handleFeedbackSuccess}
+        />
+      )}
     </div>
   );
 }
