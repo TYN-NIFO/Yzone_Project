@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
-import TenantService from "../services/tenant.service";
+import { Response } from "express";
+import { TenantService } from "../services/tenant.service";
+import { AuthRequest } from "../../../types/custom-request";
+
+const tenantService = new TenantService();
 
 class TenantController {
-
-  static async getAll(req: Request, res: Response) {
+  static async getAll(req: AuthRequest, res: Response) {
     try {
-      const data = await TenantService.getTenants();
+      const data = await tenantService.getAllTenants(req.user!.tenantId);
       res.json({ success: true, data });
     } catch (error: any) {
       console.error("Error in getAll tenants:", error);
@@ -13,7 +15,7 @@ class TenantController {
     }
   }
 
-  static async getOne(req: Request, res: Response) {
+  static async getOne(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     if (!id || Array.isArray(id)) {
@@ -24,7 +26,7 @@ class TenantController {
     }
 
     try {
-      const data = await TenantService.getTenant(id);
+      const data = await tenantService.getTenantById(id);
 
       if (!data) {
         return res.status(404).json({
@@ -40,27 +42,23 @@ class TenantController {
     }
   }
 
-  static async create(req: Request, res: Response) {
+  static async create(req: AuthRequest, res: Response) {
     try {
-      console.log("Tenant body received:", req.body); // ✅ DEBUG: check incoming JSON
+      const { name, institutionCode, contactEmail, contactPhone, address } = req.body;
 
-      const { college_name, principal_name, email, phone, address, status } = req.body;
-
-      // Validate required fields
-      if (!college_name || !principal_name || !email) {
+      if (!name || !institutionCode || !contactEmail) {
         return res.status(400).json({
           success: false,
-          message: "college_name, principal_name, and email are required",
+          message: "name, institutionCode, and contactEmail are required",
         });
       }
 
-      const data = await TenantService.createTenant({
-        college_name,
-        principal_name,
-        email,
-        phone,
+      const data = await tenantService.createTenant({
+        name,
+        institutionCode,
+        contactEmail,
+        contactPhone,
         address,
-        status: status || "ACTIVE",
       });
 
       res.status(201).json({ success: true, data });

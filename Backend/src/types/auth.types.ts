@@ -1,7 +1,8 @@
 export interface JwtPayload {
-  userId: string;
-  tenantId: string;
+  id: string;
   role: UserRole;
+  tenantId: string;
+  cohortId?: string;
 }
 
 export interface LoginRequest {
@@ -17,12 +18,13 @@ export interface AuthResponse {
     email: string;
     role: UserRole;
     tenantId: string;
+    cohortId?: string;
   };
 }
 
 export type UserRole =
-  | "TYN_EXECUTIVE"
-  | "FACILITATOR"
-  | "STUDENT"
-  | "INDUSTRY_MENTOR"
-  | "FACULTY_PRINCIPAL";
+  | "tynExecutive"
+  | "facilitator"
+  | "facultyPrincipal"
+  | "industryMentor"
+  | "student";

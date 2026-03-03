@@ -1,11 +1,17 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { UserRole } from "../types/auth.types";
+import { AuthRequest } from "../types/custom-request";
 
-const roleMiddleware = (allowedRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user;
+const roleMiddleware = (allowedRoles: UserRole[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    const user = req.user;
 
     if (!user || !allowedRoles.includes(user.role)) {
-      return res.status(403).json({ message: "Forbidden" });
+      res.status(403).json({ 
+        success: false, 
+        message: "Access Denied: Insufficient permissions" 
+      });
+      return;
     }
 
     next();

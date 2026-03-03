@@ -1,214 +1,286 @@
-import React, { useState } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { StatCard, Card } from '../../components/ui/Card';
-import { StatusBadge, Badge } from '../../components/ui/Badge';
-import { ProgressBar } from '../../components/ui/ProgressBar';
-import { Modal } from '../../components/ui/Modal';
-import { MOCK_COHORTS, MOCK_RISK_FLAGS, ENGAGEMENT_TREND, MOCK_STUDENTS } from '../../data/mockData';
-import {
-    BarChart3, Users, AlertTriangle, TrendingUp, Activity, Zap, ChevronRight, Globe
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Building2, 
+  GraduationCap, 
+  TrendingUp, 
+  Activity,
+  UserPlus,
+  LogOut,
+  Plus
 } from 'lucide-react';
-import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
-import { clsx } from 'clsx';
+import { dashboardService } from '../../services/dashboard.service';
+import { useAuth } from '../../context/AuthContext';
+import TenantForm from '../../components/executive/TenantForm';
+import CohortForm from '../../components/executive/CohortForm';
 
 export default function ExecutiveDashboard() {
-    const [drillCohort, setDrillCohort] = useState<typeof MOCK_COHORTS[0] | null>(null);
-    const [overrideModal, setOverrideModal] = useState<typeof MOCK_STUDENTS[0] | null>(null);
-    const [overrideReason, setOverrideReason] = useState('');
-    const [overrideScore, setOverrideScore] = useState('');
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [showTenantForm, setShowTenantForm] = useState(false);
+  const [showCohortForm, setShowCohortForm] = useState(false);
 
-    const active = MOCK_COHORTS.filter(c => c.status === 'active').length;
-    const totalStudents = MOCK_COHORTS.reduce((a, c) => a + c.studentCount, 0);
-    const avgEngagement = Math.round(MOCK_COHORTS.reduce((a, c) => a + c.engagementScore, 0) / MOCK_COHORTS.length);
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const data = await dashboardService.getExecutiveDashboard();
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  if (loading) {
     return (
-        <DashboardLayout title="Executive Hub" subtitle="Cross-cohort intelligence dashboard">
-            <div className="space-y-5 max-w-7xl">
-                {/* KPI Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <StatCard title="Active Cohorts" value={active} icon={<Activity size={18} />} trend={{ value: 2, label: 'vs last term' }} />
-                    <StatCard title="Total Students" value={totalStudents} icon={<Users size={18} />} />
-                    <StatCard title="Avg Engagement" value={`${avgEngagement}%`} icon={<TrendingUp size={18} />} accent="text-green-600" trend={{ value: 4, label: 'this week' }} />
-                    <StatCard title="Risk Flags" value={MOCK_RISK_FLAGS.length} icon={<AlertTriangle size={18} />} accent="text-red-500" />
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-                    {/* Engagement Trend Chart */}
-                    <Card className="xl:col-span-2 animate-fadeIn">
-                        <div className="flex items-center gap-2 mb-4">
-                            <BarChart3 size={18} className="text-primary-500" />
-                            <h3 className="section-title">Cohort Engagement Trends</h3>
-                        </div>
-                        <div className="h-52">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={ENGAGEMENT_TREND} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                    <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                                    <YAxis domain={[40, 100]} tick={{ fontSize: 11, fill: '#6b7280' }} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
-                                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                                    <Line type="monotone" dataKey="c1" name="Full Stack" stroke="#3b82f6" strokeWidth={2.5} dot={false} />
-                                    <Line type="monotone" dataKey="c2" name="Data Science" stroke="#8b5cf6" strokeWidth={2.5} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </Card>
-
-                    {/* Risk Flags */}
-                    <Card className="animate-fadeIn">
-                        <div className="flex items-center gap-2 mb-4">
-                            <AlertTriangle size={18} className="text-red-500" />
-                            <h3 className="section-title">Risk Flags</h3>
-                        </div>
-                        <div className="space-y-2">
-                            {MOCK_RISK_FLAGS.map((flag, i) => (
-                                <div key={i} className={clsx(
-                                    'p-3 rounded-lg border',
-                                    flag.severity === 'high' ? 'bg-red-50 border-red-200' :
-                                        flag.severity === 'medium' ? 'bg-amber-50 border-amber-200' :
-                                            'bg-blue-50 border-blue-200'
-                                )}>
-                                    <div className="flex items-start gap-2">
-                                        <div className="flex-1">
-                                            <p className="text-sm font-semibold text-gray-800">{flag.studentName}</p>
-                                            <p className="text-xs text-muted">{flag.cohortName}</p>
-                                            <p className="text-xs text-gray-600 mt-1">{flag.reason}</p>
-                                        </div>
-                                        <StatusBadge status={flag.severity} />
-                                    </div>
-                                </div>
-                            ))}
-                            {MOCK_RISK_FLAGS.length === 0 && (
-                                <p className="text-sm text-muted text-center py-4">No active risk flags 🎉</p>
-                            )}
-                        </div>
-                    </Card>
-                </div>
-
-                {/* Cross-cohort table */}
-                <Card className="animate-fadeIn">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Globe size={18} className="text-primary-500" />
-                        <h3 className="section-title">All Cohorts</h3>
-                    </div>
-                    <div className="space-y-3">
-                        {MOCK_COHORTS.map(c => (
-                            <div
-                                key={c.id}
-                                onClick={() => setDrillCohort(c)}
-                                className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group border border-transparent hover:border-gray-200"
-                            >
-                                <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 items-center">
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-800">{c.name}</p>
-                                        <p className="text-xs text-muted">{c.department} · {c.studentCount} students</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted mb-1">Completion</p>
-                                        <ProgressBar value={c.completionRate} color="bg-primary-500" showPercent={false} />
-                                        <p className="text-xs font-medium text-gray-700 mt-0.5">{c.completionRate}%</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted mb-1">Engagement</p>
-                                        <ProgressBar
-                                            value={c.engagementScore}
-                                            color={c.engagementScore >= 80 ? 'bg-green-500' : c.engagementScore >= 60 ? 'bg-amber-400' : 'bg-red-400'}
-                                            showPercent={false}
-                                        />
-                                        <p className="text-xs font-medium text-gray-700 mt-0.5">{c.engagementScore}%</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 justify-between">
-                                        <StatusBadge status={c.status} />
-                                        <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            </div>
-
-            {/* Drill-down Modal */}
-            <Modal
-                isOpen={!!drillCohort}
-                onClose={() => setDrillCohort(null)}
-                title={`Drill-down: ${drillCohort?.name ?? ''}`}
-                size="xl"
-            >
-                {drillCohort && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                            {[
-                                { label: 'Department', value: drillCohort.department },
-                                { label: 'Batch', value: drillCohort.batch },
-                                { label: 'Students', value: drillCohort.studentCount },
-                                { label: 'Completion', value: `${drillCohort.completionRate}%` },
-                            ].map(item => (
-                                <div key={item.label} className="bg-gray-50 rounded-lg p-3">
-                                    <p className="text-xs text-muted">{item.label}</p>
-                                    <p className="text-sm font-semibold text-gray-800 mt-0.5">{item.value}</p>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div>
-                            <p className="text-sm font-semibold text-gray-700 mb-2">Students in Cohort</p>
-                            <div className="space-y-2">
-                                {MOCK_STUDENTS.filter(s => s.cohortId === drillCohort.id).map(s => (
-                                    <div key={s.id} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
-                                        <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold">
-                                            {s.name.charAt(0)}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium text-gray-800">{s.name}</p>
-                                            <p className="text-xs text-muted">Rank #{s.rank} · {s.attendancePercent}% attendance</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setOverrideModal(s)}
-                                            className="btn-outline btn-sm text-xs"
-                                        >
-                                            Override Score
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </Modal>
-
-            {/* Override Score Modal */}
-            <Modal
-                isOpen={!!overrideModal}
-                onClose={() => setOverrideModal(null)}
-                title={`Override Score — ${overrideModal?.name ?? ''}`}
-                size="sm"
-                footer={
-                    <>
-                        <button className="btn-secondary btn-sm" onClick={() => setOverrideModal(null)}>Cancel</button>
-                        <button className="btn-primary btn-sm" disabled={!overrideReason.trim()} onClick={() => setOverrideModal(null)}>
-                            Apply Override
-                        </button>
-                    </>
-                }
-            >
-                <div className="space-y-4">
-                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
-                        <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />
-                        Score overrides are logged and visible in audit history.
-                    </div>
-                    <div>
-                        <label className="input-label">New Score (0–100)</label>
-                        <input type="number" min={0} max={100} className="input" value={overrideScore} onChange={e => setOverrideScore(e.target.value)} placeholder="e.g. 85" />
-                    </div>
-                    <div>
-                        <label className="input-label">Reason for Override <span className="text-red-500">*</span></label>
-                        <textarea rows={3} className="textarea" placeholder="Provide justification…" value={overrideReason} onChange={e => setOverrideReason(e.target.value)} />
-                    </div>
-                </div>
-            </Modal>
-        </DashboardLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
     );
+  }
+
+  const stats = dashboardData?.stats || {};
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Tyn Executive Dashboard</h1>
+              <p className="text-sm text-gray-600 mt-1">Welcome back, {currentUser?.name}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowTenantForm(true)}
+                className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New Tenant
+              </button>
+              <button
+                onClick={() => setShowCohortForm(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New Cohort
+              </button>
+              <button
+                onClick={() => navigate('/executive/users')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <UserPlus size={18} />
+                Manage Users
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            title="Total Tenants"
+            value={stats.total_tenants || 0}
+            icon={<Building2 size={24} />}
+            color="blue"
+          />
+          <StatCard
+            title="Total Cohorts"
+            value={stats.total_cohorts || 0}
+            icon={<GraduationCap size={24} />}
+            color="violet"
+          />
+          <StatCard
+            title="Total Students"
+            value={stats.total_students || 0}
+            icon={<Users size={24} />}
+            color="emerald"
+          />
+          <StatCard
+            title="Tracker Compliance"
+            value={`${stats.tracker_compliance || 0}%`}
+            icon={<TrendingUp size={24} />}
+            color="orange"
+          />
+        </div>
+
+        {/* Additional Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Facilitators</h3>
+              <Users className="text-violet-600" size={20} />
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{stats.total_facilitators || 0}</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Mentors</h3>
+              <Users className="text-blue-600" size={20} />
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{stats.total_mentors || 0}</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Today's Submissions</h3>
+              <Activity className="text-emerald-600" size={20} />
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{stats.today_submissions || 0}</p>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <div className="space-y-3">
+              {dashboardData.recentActivity.slice(0, 5).map((activity: any, index: number) => (
+                <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div>
+                    <p className="font-medium text-gray-900">{activity.name}</p>
+                    <p className="text-sm text-gray-600">{activity.cohort_name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">{activity.hours_spent}h</p>
+                    <p className="text-xs text-gray-500">{new Date(activity.entry_date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Cohort Performance */}
+        {dashboardData?.cohortPerformance && dashboardData.cohortPerformance.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Cohort Performance</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Students</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Score</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recent Submissions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {dashboardData.cohortPerformance.map((cohort: any, index: number) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{cohort.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{cohort.student_count || 0}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {cohort.avg_score ? Number(cohort.avg_score).toFixed(1) : 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{cohort.recent_submissions || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <QuickActionCard
+            title="Manage Users"
+            description="Create and manage all system users"
+            icon={<Users size={24} />}
+            onClick={() => navigate('/executive/users')}
+          />
+          <QuickActionCard
+            title="View Reports"
+            description="Access detailed analytics and reports"
+            icon={<Activity size={24} />}
+            onClick={() => alert('Reports coming soon!')}
+          />
+          <QuickActionCard
+            title="System Settings"
+            description="Configure system-wide settings"
+            icon={<LayoutDashboard size={24} />}
+            onClick={() => alert('Settings coming soon!')}
+          />
+        </div>
+      </main>
+
+      {/* Modals */}
+      {showTenantForm && (
+        <TenantForm
+          onClose={() => setShowTenantForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
+      {showCohortForm && (
+        <CohortForm
+          onClose={() => setShowCohortForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
+    </div>
+  );
+}
+
+function StatCard({ title, value, icon, color }: any) {
+  const colorClasses: Record<string, string> = {
+    blue: 'bg-blue-100 text-blue-600',
+    violet: 'bg-violet-100 text-violet-600',
+    emerald: 'bg-emerald-100 text-emerald-600',
+    orange: 'bg-orange-100 text-orange-600',
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-gray-600">{title}</h3>
+        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>{icon}</div>
+      </div>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
+    </div>
+  );
+}
+
+function QuickActionCard({ title, description, icon, onClick }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">{icon}</div>
+        <h3 className="font-semibold text-gray-900">{title}</h3>
+      </div>
+      <p className="text-sm text-gray-600">{description}</p>
+    </button>
+  );
 }

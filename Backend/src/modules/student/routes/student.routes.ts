@@ -2,8 +2,19 @@
 import { Router } from "express";
 import multer from "multer";
 import StudentController from "../controllers/student.controller";
+import { StudentDashboardController } from "../controllers/dashboard.controller";
+import authMiddleware from "../../../middleware/auth.middleware";
+import roleMiddleware from "../../../middleware/role.middleware";
 
 const router = Router();
+const dashboardController = new StudentDashboardController();
+
+router.use(authMiddleware);
+
+// Dashboard
+router.get("/dashboard", roleMiddleware(["student"]), (req, res) => dashboardController.getDashboard(req, res));
+router.get("/notifications", roleMiddleware(["student"]), (req, res) => dashboardController.getNotifications(req, res));
+router.patch("/notifications/:id/read", roleMiddleware(["student"]), (req, res) => dashboardController.markNotificationRead(req, res));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
@@ -18,7 +29,7 @@ router.get("/:id", StudentController.getById);
 router.get("/", StudentController.getAll);
 
 // TRACKER
-router.post("/tracker", StudentController.addTracker);
+router.post("/tracker", roleMiddleware(["student"]), upload.single("file"), (req, res) => dashboardController.submitTracker(req, res));
 router.patch("/tracker/:id", StudentController.updateTracker);
 router.get("/:id/tracker", StudentController.getTrackers);
 

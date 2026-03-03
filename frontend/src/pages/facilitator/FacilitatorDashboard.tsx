@@ -1,138 +1,216 @@
-import React from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { StatCard, Card } from '../../components/ui/Card';
-import { Badge, StatusBadge } from '../../components/ui/Badge';
-import { Heatmap } from '../../components/ui/Heatmap';
-import { ProgressBar } from '../../components/ui/ProgressBar';
-import { useCohort } from '../../context/CohortContext';
-import { MOCK_STUDENTS, MOCK_TRACKER_ENTRIES, MOCK_SESSIONS } from '../../data/mockData';
-import {
-    Users, CheckCircle2, AlertTriangle, Calendar, TrendingUp, ClipboardList, Star, Zap
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Users, 
+  GraduationCap, 
+  TrendingUp, 
+  Activity,
+  CheckCircle,
+  Clock,
+  LogOut
 } from 'lucide-react';
-
-function generateHeatmapData() {
-    const data = [];
-    for (let i = 27; i >= 0; i--) {
-        const d = new Date(2025, 1, i + 1);
-        const dateStr = d.toISOString().split('T')[0];
-        const count = MOCK_TRACKER_ENTRIES.filter(t => t.date === dateStr && t.submittedAt).length;
-        data.push({ date: dateStr, value: count, label: `${dateStr}: ${count} submissions` });
-    }
-    return data.reverse();
-}
+import { dashboardService } from '../../services/dashboard.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function FacilitatorDashboard() {
-    const { selectedCohort } = useCohort();
-    const students = MOCK_STUDENTS.filter(s => s.cohortId === selectedCohort?.id);
-    const flagged = students.filter(s => s.needsAttention);
-    const heatmapData = generateHeatmapData();
-    const avgAttendance = Math.round(students.reduce((a, s) => a + s.attendancePercent, 0) / (students.length || 1));
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const data = await dashboardService.getFacilitatorDashboard();
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  if (loading) {
     return (
-        <DashboardLayout title="Cohort Dashboard" subtitle="Facilitator overview">
-            <div className="space-y-5 max-w-6xl">
-                {/* Stat widgets */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <StatCard
-                        title="Total Students" value={students.length}
-                        icon={<Users size={18} />} trend={{ value: 0, label: 'enrolled' }}
-                    />
-                    <StatCard
-                        title="Avg Attendance" value={`${avgAttendance}%`}
-                        icon={<CheckCircle2 size={18} />} accent="text-green-600"
-                    />
-                    <StatCard
-                        title="Needs Attention" value={flagged.length}
-                        icon={<AlertTriangle size={18} />} accent="text-red-500"
-                    />
-                    <StatCard
-                        title="Upcoming Reviews" value="2"
-                        icon={<Star size={18} />} accent="text-violet-600"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    {/* Heatmap */}
-                    <Card className="lg:col-span-2 animate-fadeIn">
-                        <div className="flex items-center gap-2 mb-4">
-                            <ClipboardList size={18} className="text-primary-500" />
-                            <h3 className="section-title">Tracker Submission Heatmap</h3>
-                            <span className="ml-auto text-xs text-muted">Last 28 days</span>
-                        </div>
-                        <Heatmap data={heatmapData} maxValue={students.length || 1} />
-                    </Card>
-
-                    {/* Upcoming sessions */}
-                    <Card className="animate-fadeIn">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Calendar size={18} className="text-primary-500" />
-                            <h3 className="section-title">Upcoming Sessions</h3>
-                        </div>
-                        <div className="space-y-2">
-                            {MOCK_SESSIONS.slice(0, 4).map(s => (
-                                <div key={s.id} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
-                                    <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Calendar size={14} className="text-primary-600" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium text-gray-800 truncate">{s.title}</p>
-                                        <p className="text-xs text-muted">{new Date(s.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · {s.type}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-                </div>
-
-                {/* Flagged students */}
-                {flagged.length > 0 && (
-                    <Card className="animate-fadeIn">
-                        <div className="flex items-center gap-2 mb-4">
-                            <AlertTriangle size={18} className="text-red-500" />
-                            <h3 className="section-title text-red-600">Students Needing Attention</h3>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {flagged.map(s => (
-                                <div key={s.id} className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold text-sm">
-                                        {s.name.charAt(0)}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-800">{s.name}</p>
-                                        <p className="text-xs text-muted">Attendance: {s.attendancePercent}% · Streak: {s.trackerStreak}d</p>
-                                    </div>
-                                    <StatusBadge status="high" />
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-                )}
-
-                {/* Attendance overview */}
-                <Card className="animate-fadeIn">
-                    <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp size={18} className="text-primary-500" />
-                        <h3 className="section-title">Student Attendance Overview</h3>
-                    </div>
-                    <div className="space-y-3">
-                        {students.map(s => (
-                            <div key={s.id} className="flex items-center gap-3">
-                                <div className="w-24 text-sm text-gray-700 font-medium truncate">{s.name.split(' ')[0]}</div>
-                                <div className="flex-1">
-                                    <ProgressBar
-                                        value={s.attendancePercent}
-                                        color={s.attendancePercent >= 90 ? 'bg-green-500' : s.attendancePercent >= 75 ? 'bg-amber-400' : 'bg-red-400'}
-                                        showPercent={false}
-                                    />
-                                </div>
-                                <span className={`text-xs font-semibold w-8 text-right ${s.attendancePercent >= 90 ? 'text-green-600' : s.attendancePercent >= 75 ? 'text-amber-600' : 'text-red-500'}`}>
-                                    {s.attendancePercent}%
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            </div>
-        </DashboardLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
     );
+  }
+
+  const stats = dashboardData?.stats || {};
+  const cohorts = dashboardData?.cohorts || [];
+  const students = dashboardData?.students || [];
+  const trackerStatus = dashboardData?.trackerStatus || [];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Facilitator Dashboard</h1>
+              <p className="text-sm text-gray-600 mt-1">Welcome back, {currentUser?.name}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Assigned Cohorts */}
+        {cohorts.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-blue-900 mb-2">Your Assigned Cohorts</h3>
+            <div className="flex flex-wrap gap-2">
+              {cohorts.map((cohort: any) => (
+                <span key={cohort.id} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  {cohort.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            title="Total Students"
+            value={stats.total_students || 0}
+            icon={<Users size={24} />}
+            color="blue"
+          />
+          <StatCard
+            title="Today's Submissions"
+            value={stats.today_submissions || 0}
+            icon={<CheckCircle size={24} />}
+            color="emerald"
+          />
+          <StatCard
+            title="Average Score"
+            value={stats.avg_score ? Number(stats.avg_score).toFixed(1) : 'N/A'}
+            icon={<TrendingUp size={24} />}
+            color="violet"
+          />
+          <StatCard
+            title="Total Sessions"
+            value={stats.total_sessions || 0}
+            icon={<Activity size={24} />}
+            color="orange"
+          />
+        </div>
+
+        {/* Tracker Status */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Today's Tracker Status</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted At</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {trackerStatus.map((student: any, index: number) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
+                    <td className="px-4 py-3">
+                      {student.status === 'submitted' ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs flex items-center gap-1 w-fit">
+                          <CheckCircle size={14} />
+                          Submitted
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs flex items-center gap-1 w-fit">
+                          <Clock size={14} />
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.submitted_at ? new Date(student.submitted_at).toLocaleTimeString() : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Student Performance */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Performance</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recent Trackers</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {students.map((student: any, index: number) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{student.cohort_name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{student.recent_trackers || 0}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.score ? Number(student.score).toFixed(1) : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function StatCard({ title, value, icon, color }: any) {
+  const colorClasses: Record<string, string> = {
+    blue: 'bg-blue-100 text-blue-600',
+    violet: 'bg-violet-100 text-violet-600',
+    emerald: 'bg-emerald-100 text-emerald-600',
+    orange: 'bg-orange-100 text-orange-600',
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-gray-600">{title}</h3>
+        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>{icon}</div>
+      </div>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
+    </div>
+  );
 }

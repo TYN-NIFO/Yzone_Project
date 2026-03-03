@@ -1,21 +1,16 @@
 import { Router } from "express";
-import MentorReviewController from "../controllers/mentorReview.controller";
-import authMiddleware from "../../../middleware/auth.middleware"; // optional
-import roleMiddleware from "../../../middleware/role.middleware"; // optional
+import { MentorController } from "../controllers/mentor.controller";
+import authMiddleware from "../../../middleware/auth.middleware";
+import roleMiddleware from "../../../middleware/role.middleware";
 
 const router = Router();
+const mentorController = new MentorController();
 
-// Protect all routes if you want
 router.use(authMiddleware);
-router.use(roleMiddleware(["MENTOR"]));
 
-// Create review
-router.post("/", MentorReviewController.create);
-
-// Get all reviews by mentor
-router.get("/mentor/:mentorId", MentorReviewController.getAllByMentor);
-
-// Get review by ID
-router.get("/:id", MentorReviewController.getOne);
+router.get("/dashboard", roleMiddleware(["industryMentor"]), (req, res) => mentorController.getDashboard(req, res));
+router.get("/students", roleMiddleware(["industryMentor"]), (req, res) => mentorController.getAssignedStudents(req, res));
+router.post("/review", roleMiddleware(["industryMentor"]), (req, res) => mentorController.submitReview(req, res));
+router.get("/reviews/:studentId", roleMiddleware(["industryMentor", "student"]), (req, res) => mentorController.getStudentReviews(req, res));
 
 export default router;

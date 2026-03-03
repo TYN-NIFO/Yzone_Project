@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YZone API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 4px solid #2563eb;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .error {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+            color: #dc2626;
+        }
+        .success {
+            background: #f0fdf4;
+            border-left-color: #22c55e;
+            color: #16a34a;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        label {
+            font-weight: bold;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 YZone API Connection Test</h1>
+        <p>This page tests the connection to your YZone backend API.</p>
+        
+        <h3>Test 1: Check Backend Status</h3>
+        <button onclick="testBackend()">Test Backend Connection</button>
+        <div id="backend-result"></div>
+
+        <h3>Test 2: Login Test</h3>
+        <label>Email:</label>
+        <input type="email" id="email" value="admin@yzone.com" />
+        
+        <label>Password:</label>
+        <input type="password" id="password" value="admin123" />
+        
+        <button onclick="testLogin()">Test Login</button>
+        <div id="login-result"></div>
+
+        <h3>Configuration</h3>
+        <p><strong>Backend URL:</strong> <code>http://localhost:5000</code></p>
+        <p><strong>API Base:</strong> <code>http://localhost:5000/api</code></p>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<div class="result">Testing connection...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="result success">✅ Backend Connected!\n\n${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ Backend Error: ${response.status}\n\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Connection Failed!\n\nError: ${error.message}\n\nPossible causes:\n1. Backend is not running\n2. Wrong port (should be 5000)\n3. CORS issue\n4. Firewall blocking connection</div>`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            resultDiv.innerHTML = '<div class="result">Attempting login...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="result success">✅ Login Successful!\n\nUser: ${data.data.user.name}\nRole: ${data.data.user.role}\nToken: ${data.data.token.substring(0, 50)}...</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ Login Failed: ${response.status}\n\n${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Login Request Failed!\n\nError: ${error.message}\n\nThis is the same error you're seeing in the React app.\n\nPossible causes:\n1. Backend not running on port 5000\n2. CORS not configured properly\n3. Network/firewall issue\n4. Browser blocking the request</div>`;
+            }
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            testBackend();
+        };
+    </script>
+</body>
+</html>

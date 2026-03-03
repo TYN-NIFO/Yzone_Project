@@ -32,3 +32,30 @@ CREATE TABLE IF NOT EXISTS projects (
   title TEXT NOT NULL,
   status TEXT DEFAULT 'PENDING'
 );
+
+-- session table
+CREATE TABLE IF NOT EXISTS sessions(
+ id UUID PRIMARY KEY,
+ cohort_id UUID NOT NULL,
+ title TEXT NOT NULL,
+ session_date DATE NOT NULL DEFAULT CURRENT_DATE,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+ FOREIGN KEY (cohort_id) REFERENCES cohorts(id)
+ ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS attendance(
+ id UUID PRIMARY KEY,
+ session_id UUID NOT NULL,
+ student_id UUID NOT NULL,
+ status TEXT CHECK (status IN ('PRESENT','ABSENT')),
+ reason TEXT,
+ marked_by UUID NOT NULL,
+ marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+ FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+ FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+
+ UNIQUE(session_id, student_id)
+);
