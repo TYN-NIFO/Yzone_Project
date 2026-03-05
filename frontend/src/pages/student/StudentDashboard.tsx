@@ -7,7 +7,6 @@ import {
   Trophy,
   Calendar,
   LogOut,
-  Plus
   Plus,
   LayoutDashboard,
   CheckCircle,

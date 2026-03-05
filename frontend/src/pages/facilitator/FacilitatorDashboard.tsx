@@ -20,6 +20,18 @@ import CohortForm from '../../components/facilitator/CohortForm';
 import TeamForm from '../../components/facilitator/TeamForm';
 import ProjectForm from '../../components/facilitator/ProjectForm';
 import AttendanceForm from '../../components/facilitator/AttendanceForm';
+import StudentForm from '../../components/facilitator/StudentForm';
+import MentorForm from '../../components/facilitator/MentorForm';
+
+export default function FacilitatorDashboard() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [showCohortForm, setShowCohortForm] = useState(false);
+  const [showTeamForm, setShowTeamForm] = useState(false);
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [showAttendanceForm, setShowAttendanceForm] = useState(false);
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [showMentorForm, setShowMentorForm] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
 import { X, Upload } from 'lucide-react';
 
 interface TenantFormProps {
@@ -28,7 +27,6 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/executive/tenants', {
       
       // First create the tenant
       const tenantResponse = await fetch('http://localhost:5000/api/executive/tenants', {
@@ -40,14 +38,6 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        onSuccess();
-        onClose();
-      } else {
-        setError(data.message || 'Failed to create tenant');
-      }
       const tenantData = await tenantResponse.json();
 
       if (!tenantResponse.ok) {
@@ -89,7 +79,6 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">Create New Tenant</h2>
@@ -98,7 +87,6 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -167,6 +155,8 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+          </div>
+
           {/* Tenant Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Tenant Information</h3>

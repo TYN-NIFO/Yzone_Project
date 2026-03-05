@@ -16,6 +16,15 @@ import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
 import TenantForm from '../../components/executive/TenantForm';
 import CohortForm from '../../components/executive/CohortForm';
+import { MOUUpload } from '../../components/executive/MOUUpload';
+
+export default function ExecutiveDashboard() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [showTenantForm, setShowTenantForm] = useState(false);
+  const [showCohortForm, setShowCohortForm] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
