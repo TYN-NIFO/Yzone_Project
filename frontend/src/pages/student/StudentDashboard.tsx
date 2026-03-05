@@ -7,23 +7,18 @@ import {
   Trophy,
   Calendar,
   LogOut,
-<<<<<<< HEAD
-  Plus
-=======
-  Plus,
+Plus,
   LayoutDashboard,
   CheckCircle,
   Edit3
->>>>>>> e25b0f6 (hi)
+
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
 import TrackerForm from '../../components/student/TrackerForm';
-<<<<<<< HEAD
-=======
 import { AttendanceView } from '../../components/student/AttendanceView';
 import { TrackerModification } from '../../components/student/TrackerModification';
->>>>>>> e25b0f6 (hi)
+
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -31,10 +26,8 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [showTrackerForm, setShowTrackerForm] = useState(false);
-<<<<<<< HEAD
-=======
-  const [activeTab, setActiveTab] = useState('dashboard');
->>>>>>> e25b0f6 (hi)
+const [activeTab, setActiveTab] = useState('dashboard');
+
 
   useEffect(() => {
     loadDashboard();
@@ -102,10 +95,7 @@ export default function StudentDashboard() {
               </button>
             </div>
           </div>
-<<<<<<< HEAD
-=======
-          
-          {/* Navigation Tabs */}
+{/* Navigation Tabs */}
           <div className="mt-4 border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
@@ -143,142 +133,13 @@ export default function StudentDashboard() {
               </button>
             </nav>
           </div>
->>>>>>> e25b0f6 (hi)
+
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-<<<<<<< HEAD
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Trackers"
-            value={trackerStats.total_entries || 0}
-            icon={<Activity size={24} />}
-            color="blue"
-          />
-          <StatCard
-            title="This Week"
-            value={trackerStats.this_week || 0}
-            icon={<Calendar size={24} />}
-            color="emerald"
-          />
-          <StatCard
-            title="Your Score"
-            value={leaderboardRank.total_score ? Number(leaderboardRank.total_score).toFixed(1) : '0'}
-            icon={<TrendingUp size={24} />}
-            color="violet"
-          />
-          <StatCard
-            title="Your Rank"
-            value={leaderboardRank.rank || '-'}
-            icon={<Trophy size={24} />}
-            color="orange"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Recent Trackers */}
-          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Tracker Submissions</h3>
-            <div className="space-y-3">
-              {recentTrackers.slice(0, 7).map((tracker: any, index: number) => (
-                <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{new Date(tracker.entry_date).toLocaleDateString()}</p>
-                    <p className="text-sm text-gray-600 mt-1">{tracker.learning_summary}</p>
-                  </div>
-                  <div className="text-right ml-4">
-                    <p className="text-sm font-medium text-gray-900">{tracker.hours_spent}h</p>
-                    <p className="text-xs text-gray-500">{tracker.tasks_completed} tasks</p>
-                  </div>
-                </div>
-              ))}
-              {recentTrackers.length === 0 && (
-                <p className="text-center text-gray-500 py-8">No tracker submissions yet</p>
-              )}
-            </div>
-          </div>
-
-          {/* Notifications */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Bell className="text-blue-600" size={20} />
-              Notifications
-            </h3>
-            <div className="space-y-3">
-              {notifications.slice(0, 5).map((notif: any, index: number) => (
-                <div key={index} className={`p-3 rounded-lg ${notif.is_read ? 'bg-gray-50' : 'bg-blue-50'}`}>
-                  <p className="text-sm font-medium text-gray-900">{notif.title}</p>
-                  <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{new Date(notif.created_at).toLocaleDateString()}</p>
-                </div>
-              ))}
-              {notifications.length === 0 && (
-                <p className="text-center text-gray-500 py-4 text-sm">No notifications</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Mentor Feedback */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Mentor Feedback</h3>
-            <div className="space-y-4">
-              {mentorFeedback.map((feedback: any, index: number) => (
-                <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-gray-900">{feedback.mentor_name}</p>
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">★</span>
-                      <span className="text-sm font-medium">{feedback.rating}/5</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600">{feedback.feedback}</p>
-                  <p className="text-xs text-gray-500 mt-1">{new Date(feedback.review_date).toLocaleDateString()}</p>
-                </div>
-              ))}
-              {mentorFeedback.length === 0 && (
-                <p className="text-center text-gray-500 py-8">No feedback yet</p>
-              )}
-            </div>
-          </div>
-
-          {/* Leaderboard */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Trophy className="text-yellow-500" size={20} />
-              Top Performers
-            </h3>
-            <div className="space-y-2">
-              {topLeaderboard.map((student: any, index: number) => (
-                <div 
-                  key={index} 
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    student.student_id === currentUser?.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`font-bold ${index < 3 ? 'text-yellow-600' : 'text-gray-600'}`}>
-                      #{student.rank}
-                    </span>
-                    <p className="font-medium text-gray-900">{student.student_name}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {Number(student.total_score).toFixed(1)}
-                  </span>
-                </div>
-              ))}
-              {topLeaderboard.length === 0 && (
-                <p className="text-center text-gray-500 py-8">No leaderboard data</p>
-              )}
-            </div>
-          </div>
-        </div>
-=======
-        {activeTab === 'dashboard' && (
+{activeTab === 'dashboard' && (
           <>
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -412,7 +273,7 @@ export default function StudentDashboard() {
 
         {activeTab === 'attendance' && <AttendanceView />}
         {activeTab === 'tracker-edit' && <TrackerModification />}
->>>>>>> e25b0f6 (hi)
+
       </main>
 
       {/* Modals */}

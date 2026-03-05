@@ -15,11 +15,8 @@ export function CohortProvider({ children }: { children: ReactNode }) {
     const { currentUser } = useAuth();
 
     const userCohorts = MOCK_COHORTS.filter(c =>
-<<<<<<< HEAD
-        currentUser?.cohortIds.includes(c.id)
-=======
-        currentUser?.cohortId === c.id
->>>>>>> e25b0f6 (hi)
+currentUser?.cohortId === c.id
+
     );
 
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(

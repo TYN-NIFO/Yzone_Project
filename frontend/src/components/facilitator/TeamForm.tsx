@@ -9,19 +9,15 @@ interface TeamFormProps {
 export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
   const [cohorts, setCohorts] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
-<<<<<<< HEAD
-=======
-  const [mentors, setMentors] = useState<any[]>([]);
->>>>>>> e25b0f6 (hi)
+const [mentors, setMentors] = useState<any[]>([]);
+
   const [formData, setFormData] = useState({
     cohortId: '',
     name: '',
     description: '',
     maxMembers: 5,
-<<<<<<< HEAD
-=======
-    mentorId: '',
->>>>>>> e25b0f6 (hi)
+mentorId: '',
+
   });
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,10 +25,8 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
 
   useEffect(() => {
     loadCohorts();
-<<<<<<< HEAD
-=======
-    loadMentors();
->>>>>>> e25b0f6 (hi)
+loadMentors();
+
   }, []);
 
   useEffect(() => {
@@ -67,9 +61,7 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
     }
   };
 
-<<<<<<< HEAD
-=======
-  const loadMentors = async () => {
+const loadMentors = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/facilitator/mentors', {
@@ -82,7 +74,7 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
     }
   };
 
->>>>>>> e25b0f6 (hi)
+
   const handleStudentToggle = (studentId: string) => {
     setSelectedStudents(prev => 
       prev.includes(studentId) 
@@ -202,9 +194,7 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
             />
           </div>
 
-<<<<<<< HEAD
-=======
-          <div>
+<div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Assign Mentor *
             </label>
@@ -226,7 +216,7 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
             </p>
           </div>
 
->>>>>>> e25b0f6 (hi)
+
           {students.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

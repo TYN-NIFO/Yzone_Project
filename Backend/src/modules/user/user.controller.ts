@@ -17,7 +17,11 @@ export class UserController {
   async getAllUsers(req: AuthRequest, res: Response): Promise<void> {
     try {
       const role = req.query.role as string | undefined;
-      const users = await userService.getAllUsers(req.user!.tenantId, role);
+      const userRole = req.user!.role;
+      const tenantId = req.user!.tenantId;
+      
+      // Tyn Executive can see all users across all tenants
+      const users = await userService.getAllUsers(tenantId, role, userRole);
       res.status(200).json({ success: true, data: users });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });

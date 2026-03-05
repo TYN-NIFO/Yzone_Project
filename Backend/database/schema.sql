@@ -361,7 +361,6 @@ CREATE INDEX idx_tracker_feedback_facilitator ON tracker_feedback(facilitator_id
 CREATE INDEX idx_tracker_feedback_tenant ON tracker_feedback(tenant_id);
 CREATE INDEX idx_tracker_feedback_created ON tracker_feedback(created_at DESC);
 
->>>>>>> e25b0f6 (hi)
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

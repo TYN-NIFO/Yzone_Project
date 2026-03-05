@@ -9,14 +9,11 @@ import {
   Clock,
   LogOut,
   Plus,
-<<<<<<< HEAD
-  UserCheck
-=======
-  UserCheck,
+UserCheck,
   LayoutDashboard,
   UserPlus,
   UsersRound
->>>>>>> e25b0f6 (hi)
+
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
@@ -24,11 +21,9 @@ import CohortForm from '../../components/facilitator/CohortForm';
 import TeamForm from '../../components/facilitator/TeamForm';
 import ProjectForm from '../../components/facilitator/ProjectForm';
 import AttendanceForm from '../../components/facilitator/AttendanceForm';
-<<<<<<< HEAD
-=======
 import StudentForm from '../../components/facilitator/StudentForm';
 import MentorForm from '../../components/facilitator/MentorForm';
->>>>>>> e25b0f6 (hi)
+
 
 export default function FacilitatorDashboard() {
   const navigate = useNavigate();
@@ -39,13 +34,7 @@ export default function FacilitatorDashboard() {
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
-<<<<<<< HEAD
-
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-=======
-  const [showStudentForm, setShowStudentForm] = useState(false);
+const [showStudentForm, setShowStudentForm] = useState(false);
   const [showMentorForm, setShowMentorForm] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [students, setStudents] = useState<any[]>([]);
@@ -62,7 +51,7 @@ export default function FacilitatorDashboard() {
       loadMentors();
     }
   }, [activeTab]);
->>>>>>> e25b0f6 (hi)
+
 
   const loadDashboard = async () => {
     try {
@@ -76,9 +65,7 @@ export default function FacilitatorDashboard() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  const loadStudents = async () => {
+const loadStudents = async () => {
     try {
       const token = localStorage.getItem('token');
       const cohortId = dashboardData?.cohorts?.[0]?.id;
@@ -129,7 +116,7 @@ export default function FacilitatorDashboard() {
     }
   };
 
->>>>>>> e25b0f6 (hi)
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -148,11 +135,8 @@ export default function FacilitatorDashboard() {
 
   const stats = dashboardData?.stats || {};
   const cohorts = dashboardData?.cohorts || [];
-<<<<<<< HEAD
-  const students = dashboardData?.students || [];
-=======
-  const dashboardStudents = dashboardData?.students || [];
->>>>>>> e25b0f6 (hi)
+const dashboardStudents = dashboardData?.students || [];
+
   const trackerStatus = dashboardData?.trackerStatus || [];
 
   return (
@@ -166,37 +150,7 @@ export default function FacilitatorDashboard() {
               <p className="text-sm text-gray-600 mt-1">Welcome back, {currentUser?.name}</p>
             </div>
             <div className="flex items-center gap-3">
-<<<<<<< HEAD
-              <button
-                onClick={() => setShowAttendanceForm(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-              >
-                <UserCheck size={18} />
-                Mark Attendance
-              </button>
-              <button
-                onClick={() => setShowCohortForm(true)}
-                className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center gap-2"
-              >
-                <Plus size={18} />
-                New Cohort
-              </button>
-              <button
-                onClick={() => setShowTeamForm(true)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
-              >
-                <Plus size={18} />
-                New Team
-              </button>
-              <button
-                onClick={() => setShowProjectForm(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-              >
-                <Plus size={18} />
-                New Project
-              </button>
-=======
-              {activeTab === 'students' && (
+{activeTab === 'students' && (
                 <button
                   onClick={() => setShowStudentForm(true)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -241,7 +195,7 @@ export default function FacilitatorDashboard() {
                   </button>
                 </>
               )}
->>>>>>> e25b0f6 (hi)
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -251,10 +205,7 @@ export default function FacilitatorDashboard() {
               </button>
             </div>
           </div>
-<<<<<<< HEAD
-=======
-
-          {/* Navigation Tabs */}
+{/* Navigation Tabs */}
           <div className="mt-4 border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
@@ -303,25 +254,13 @@ export default function FacilitatorDashboard() {
               </button>
             </nav>
           </div>
->>>>>>> e25b0f6 (hi)
+
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-<<<<<<< HEAD
-        {/* Assigned Cohorts */}
-        {cohorts.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-blue-900 mb-2">Your Assigned Cohorts</h3>
-            <div className="flex flex-wrap gap-2">
-              {cohorts.map((cohort: any) => (
-                <span key={cohort.id} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  {cohort.name}
-                </span>
-              ))}
-=======
-        {activeTab === 'dashboard' && (
+{activeTab === 'dashboard' && (
           <>
             {/* Assigned Cohorts */}
             {cohorts.length > 0 && (
@@ -481,113 +420,12 @@ export default function FacilitatorDashboard() {
                   No students found. Click "Add Student" to create one.
                 </div>
               )}
->>>>>>> e25b0f6 (hi)
+
             </div>
           </div>
         )}
 
-<<<<<<< HEAD
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Students"
-            value={stats.total_students || 0}
-            icon={<Users size={24} />}
-            color="blue"
-          />
-          <StatCard
-            title="Today's Submissions"
-            value={stats.today_submissions || 0}
-            icon={<CheckCircle size={24} />}
-            color="emerald"
-          />
-          <StatCard
-            title="Average Score"
-            value={stats.avg_score ? Number(stats.avg_score).toFixed(1) : 'N/A'}
-            icon={<TrendingUp size={24} />}
-            color="violet"
-          />
-          <StatCard
-            title="Total Sessions"
-            value={stats.total_sessions || 0}
-            icon={<Activity size={24} />}
-            color="orange"
-          />
-        </div>
-
-        {/* Tracker Status */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Today's Tracker Status</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted At</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {trackerStatus.map((student: any, index: number) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
-                    <td className="px-4 py-3">
-                      {student.status === 'submitted' ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs flex items-center gap-1 w-fit">
-                          <CheckCircle size={14} />
-                          Submitted
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs flex items-center gap-1 w-fit">
-                          <Clock size={14} />
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.submitted_at ? new Date(student.submitted_at).toLocaleTimeString() : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Student Performance */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Performance</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recent Trackers</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {students.map((student: any, index: number) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.cohort_name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.recent_trackers || 0}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.score ? Number(student.score).toFixed(1) : 'N/A'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-=======
-        {activeTab === 'teams' && (
+{activeTab === 'teams' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Team Management</h3>
@@ -670,7 +508,7 @@ export default function FacilitatorDashboard() {
             </div>
           </div>
         )}
->>>>>>> e25b0f6 (hi)
+
       </main>
 
       {/* Modals */}
@@ -683,14 +521,11 @@ export default function FacilitatorDashboard() {
       {showTeamForm && (
         <TeamForm
           onClose={() => setShowTeamForm(false)}
-<<<<<<< HEAD
-          onSuccess={loadDashboard}
-=======
-          onSuccess={() => {
+onSuccess={() => {
             loadDashboard();
             loadTeams();
           }}
->>>>>>> e25b0f6 (hi)
+
         />
       )}
       {showProjectForm && (
@@ -705,9 +540,7 @@ export default function FacilitatorDashboard() {
           onSuccess={loadDashboard}
         />
       )}
-<<<<<<< HEAD
-=======
-      {showStudentForm && (
+{showStudentForm && (
         <StudentForm
           onClose={() => setShowStudentForm(false)}
           onSuccess={() => {
@@ -725,7 +558,7 @@ export default function FacilitatorDashboard() {
           }}
         />
       )}
->>>>>>> e25b0f6 (hi)
+
     </div>
   );
 }

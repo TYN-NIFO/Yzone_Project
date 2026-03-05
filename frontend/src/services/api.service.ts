@@ -23,14 +23,12 @@ class ApiService {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
         ...getAuthHeader(),
-<<<<<<< HEAD
-        ...options.headers,
-      },
-=======
         ...(options.headers as Record<string, string>),
       } as HeadersInit,
->>>>>>> e25b0f6 (hi)
     };
 
     try {
@@ -49,7 +47,15 @@ class ApiService {
   }
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    // Add cache-busting for GET requests to ensure fresh data
+    const cacheBuster = `_t=${Date.now()}`;
+    const separator = endpoint.includes('?') ? '&' : '?';
+    const urlWithCacheBuster = `${endpoint}${separator}${cacheBuster}`;
+    
+    return this.request<T>(urlWithCacheBuster, { 
+      method: 'GET',
+      cache: 'no-cache'
+    });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
@@ -87,11 +93,7 @@ class ApiService {
         method: 'POST',
         headers: {
           ...getAuthHeader(),
-<<<<<<< HEAD
-        },
-=======
         } as HeadersInit,
->>>>>>> e25b0f6 (hi)
         body: formData,
       });
 

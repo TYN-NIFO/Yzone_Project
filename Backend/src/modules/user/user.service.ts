@@ -35,28 +35,34 @@ export class UserService {
     return result.rows[0];
   }
 
-  async getAllUsers(tenantId: string, role?: string) {
-    let query = `
-      SELECT u.id, u.name, u.email, u.role, u.phone, u.whatsapp_number, u.is_active, u.created_at,
-        c.name as cohort_name, t.name as tenant_name
-      FROM users u
-      LEFT JOIN cohorts c ON u.cohort_id = c.id
-      LEFT JOIN tenants t ON u.tenant_id = t.id
-      WHERE u.tenant_id = $1 AND u.deleted_at IS NULL
-    `;
-    
-    const params: any[] = [tenantId];
+  async getAllUsers(tenantId: string, role?: string, userRole?: string) {
+      let query = `
+        SELECT u.id, u.name, u.email, u.role, u.phone, u.whatsapp_number, u.is_active, u.created_at,
+          c.name as cohort_name, t.name as tenant_name
+        FROM users u
+        LEFT JOIN cohorts c ON u.cohort_id = c.id
+        LEFT JOIN tenants t ON u.tenant_id = t.id
+        WHERE u.deleted_at IS NULL
+      `;
 
-    if (role) {
-      params.push(role);
-      query += ` AND u.role = $${params.length}`;
+      const params: any[] = [];
+
+      // Tyn Executive can see all users, others only see their tenant
+      if (userRole !== 'tynExecutive') {
+        params.push(tenantId);
+        query += ` AND u.tenant_id = $${params.length}`;
+      }
+
+      if (role) {
+        params.push(role);
+        query += ` AND u.role = $${params.length}`;
+      }
+
+      query += ` ORDER BY u.created_at DESC`;
+
+      const result = await pool.query(query, params);
+      return result.rows;
     }
-
-    query += ` ORDER BY u.created_at DESC`;
-
-    const result = await pool.query(query, params);
-    return result.rows;
-  }
 
   async getUserById(id: string, tenantId: string) {
     const result = await pool.query(
