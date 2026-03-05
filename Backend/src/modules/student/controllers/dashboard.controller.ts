@@ -155,8 +155,6 @@ export class StudentDashboardController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-<<<<<<< HEAD
-=======
 
   async getTodayTracker(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -334,5 +332,4 @@ export class StudentDashboardController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
->>>>>>> e25b0f6 (hi)
 }

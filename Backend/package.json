@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@azure/identity": "^4.13.0",
     "@azure/keyvault-secrets": "^4.10.0",
->>>>>>> e25b0f6 (hi)
     "@azure/storage-blob": "^12.31.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",

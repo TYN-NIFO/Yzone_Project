@@ -6,10 +6,7 @@ import { ProjectsController } from "../controllers/projects.controller";
 import * as SessionController from "../controllers/session.controller";
 import * as AttendanceController from "../controllers/attendance.controller";
 import { FacilitatorDashboardController } from "../controllers/dashboard.controller";
-<<<<<<< HEAD
-=======
 import { TrackerFeedbackController } from "../controllers/tracker-feedback.controller";
->>>>>>> e25b0f6 (hi)
 import TenantController from "../../tynExecutive/controllers/tenant.controller";
 import authMiddleware from "../../../middleware/auth.middleware";
 import roleMiddleware from "../../../middleware/role.middleware";
@@ -18,10 +15,7 @@ import { AuthRequest } from "../../../types/custom-request";
 
 export const facilitatorRoutes = Router();
 const dashboardController = new FacilitatorDashboardController();
-<<<<<<< HEAD
-=======
 const trackerFeedbackController = new TrackerFeedbackController();
->>>>>>> e25b0f6 (hi)
 
 facilitatorRoutes.use(authMiddleware);
 

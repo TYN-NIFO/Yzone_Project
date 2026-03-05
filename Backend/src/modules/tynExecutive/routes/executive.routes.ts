@@ -3,10 +3,7 @@ import TenantController from "../controllers/tenant.controller";
 import CohortController from "../controllers/cohort.controller";
 import { DashboardController } from "../controllers/dashboard.controller";
 import { MentorController } from "../../industryMentor/controllers/mentor.controller";
-<<<<<<< HEAD
-=======
 import { MOUController } from "../controllers/mou.controller";
->>>>>>> e25b0f6 (hi)
 import authMiddleware from "../../../middleware/auth.middleware";
 import roleMiddleware from "../../../middleware/role.middleware";
 import multer from 'multer';
@@ -14,8 +11,6 @@ import multer from 'multer';
 const router = Router();
 const dashboardController = new DashboardController();
 const mentorController = new MentorController();
-<<<<<<< HEAD
-=======
 
 // Configure multer for file uploads
 const upload = multer({
@@ -33,7 +28,6 @@ const upload = multer({
     }
   }
 });
->>>>>>> e25b0f6 (hi)
 
 router.use(authMiddleware);
 router.use(roleMiddleware(["tynExecutive"]));
@@ -51,8 +45,6 @@ router.post("/mentor/create", (req, res) => mentorController.createMentor(req, r
 router.get("/mentors", (req, res) => mentorController.getAllMentors(req, res));
 router.post("/mentor/assign", (req, res) => mentorController.assignStudents(req, res));
 
-<<<<<<< HEAD
-=======
 // MOU Management Routes
 router.post("/mou/upload", upload.single('file'), MOUController.uploadMOU);
 router.get("/mou", MOUController.getMOUs);
@@ -60,6 +52,4 @@ router.get("/mou/stats", MOUController.getMOUStats);
 router.get("/mou/:mouId", MOUController.getMOUById);
 router.put("/mou/:mouId/status", MOUController.updateMOUStatus);
 router.delete("/mou/:mouId", MOUController.deleteMOU);
-
->>>>>>> e25b0f6 (hi)
 export default router;

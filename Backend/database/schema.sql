@@ -16,19 +16,13 @@ DROP TABLE IF EXISTS tenants CASCADE;
 DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS message_status CASCADE;
-<<<<<<< HEAD
-=======
 DROP TYPE IF EXISTS mou_status CASCADE;
->>>>>>> e25b0f6 (hi)
 
 -- Create ENUM types
 CREATE TYPE user_role AS ENUM ('tynExecutive', 'facilitator', 'facultyPrincipal', 'industryMentor', 'student');
 CREATE TYPE notification_type AS ENUM ('tracker_reminder', 'mentor_comment', 'system_alert', 'whatsapp_sent');
 CREATE TYPE message_status AS ENUM ('pending', 'sent', 'delivered', 'failed', 'read');
-<<<<<<< HEAD
-=======
 CREATE TYPE mou_status AS ENUM ('pending', 'approved', 'rejected', 'expired');
->>>>>>> e25b0f6 (hi)
 
 -- TENANTS TABLE
 CREATE TABLE tenants (
@@ -320,8 +314,6 @@ CREATE INDEX idx_mentor_reviews_mentor ON mentor_reviews(mentor_id);
 CREATE INDEX idx_mentor_reviews_student ON mentor_reviews(student_id);
 CREATE INDEX idx_mentor_reviews_cohort ON mentor_reviews(cohort_id);
 
-<<<<<<< HEAD
-=======
 -- MOU UPLOADS TABLE
 CREATE TABLE mou_uploads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -390,11 +382,8 @@ CREATE TRIGGER update_sessions_updated_at BEFORE UPDATE ON sessions FOR EACH ROW
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_teams_updated_at BEFORE UPDATE ON teams FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mentor_reviews_updated_at BEFORE UPDATE ON mentor_reviews FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-<<<<<<< HEAD
-=======
 CREATE TRIGGER update_mou_uploads_updated_at BEFORE UPDATE ON mou_uploads FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_tracker_feedback_updated_at BEFORE UPDATE ON tracker_feedback FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
->>>>>>> e25b0f6 (hi)
 
 -- Insert sample data for testing
 INSERT INTO tenants (name, institution_code, contact_email, contact_phone) VALUES
