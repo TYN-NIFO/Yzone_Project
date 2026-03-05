@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import * as repo from "../repos/session.repo";
+import * as repo from "../Repos/session.repo";
 import { CreateSession } from "../types/session.types";
 
 export const getOrCreateTodaySession = async (

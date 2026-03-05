@@ -9,7 +9,7 @@ class TrackerController {
       const { student_id, project_id, week, learned_today, issues, plan_for_tomorrow, status } = req.body;
       const id = uuidv4();
 
-      const result = await db.query(
+      const result = await pool.query(
         `INSERT INTO student_trackers
         (id, student_id, project_id, week, learned_today, issues, plan_for_tomorrow, status)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
@@ -30,7 +30,7 @@ class TrackerController {
       const { id } = req.params;
       const { learned_today, issues, plan_for_tomorrow, status } = req.body;
 
-      const result = await db.query(
+      const result = await pool.query(
         `UPDATE student_trackers SET
           learned_today = COALESCE($1, learned_today),
           issues = COALESCE($2, issues),
@@ -54,7 +54,7 @@ class TrackerController {
   static async getByStudent(req: Request, res: Response) {
     try {
       const { id } = req.params; // student_id
-      const result = await db.query(
+      const result = await pool.query(
         `SELECT * FROM student_trackers WHERE student_id = $1 ORDER BY week`,
         [id]
       );

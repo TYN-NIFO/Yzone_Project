@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import * as repo from "../repos/attendance.repo";
+import * as repo from "../Repos/attendance.repo";
 import { MarkAttendanceDTO } from "../types/attendance.types";
 
 export const markAttendance = async (

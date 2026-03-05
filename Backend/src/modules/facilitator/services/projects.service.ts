@@ -1,5 +1,5 @@
 import { Project } from "../types/project.types";
-import { ProjectsRepo } from "../repos/projects.repo";
+import { ProjectsRepo } from "../Repos/projects.repo";
 
 const repo = new ProjectsRepo();
 

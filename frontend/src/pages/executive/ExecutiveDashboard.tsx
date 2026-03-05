@@ -9,12 +9,21 @@ import {
   Activity,
   UserPlus,
   LogOut,
+<<<<<<< HEAD
   Plus
+=======
+  Plus,
+  FileText
+>>>>>>> e25b0f6 (hi)
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
 import TenantForm from '../../components/executive/TenantForm';
 import CohortForm from '../../components/executive/CohortForm';
+<<<<<<< HEAD
+=======
+import { MOUUpload } from '../../components/executive/MOUUpload';
+>>>>>>> e25b0f6 (hi)
 
 export default function ExecutiveDashboard() {
   const navigate = useNavigate();
@@ -23,6 +32,10 @@ export default function ExecutiveDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [showTenantForm, setShowTenantForm] = useState(false);
   const [showCohortForm, setShowCohortForm] = useState(false);
+<<<<<<< HEAD
+=======
+  const [activeTab, setActiveTab] = useState('dashboard');
+>>>>>>> e25b0f6 (hi)
 
   useEffect(() => {
     loadDashboard();
@@ -99,11 +112,43 @@ export default function ExecutiveDashboard() {
               </button>
             </div>
           </div>
+<<<<<<< HEAD
+=======
+          
+          {/* Navigation Tabs */}
+          <div className="mt-4 border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'dashboard'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4 inline mr-2" />
+                Dashboard
+              </button>
+              <button
+                onClick={() => setActiveTab('mou')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'mou'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FileText className="w-4 h-4 inline mr-2" />
+                MOU Management
+              </button>
+            </nav>
+          </div>
+>>>>>>> e25b0f6 (hi)
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<<<<<<< HEAD
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
@@ -232,6 +277,142 @@ export default function ExecutiveDashboard() {
             onClick={() => alert('Settings coming soon!')}
           />
         </div>
+=======
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatCard
+                title="Total Tenants"
+                value={stats.total_tenants || 0}
+                icon={<Building2 size={24} />}
+                color="blue"
+              />
+              <StatCard
+                title="Total Cohorts"
+                value={stats.total_cohorts || 0}
+                icon={<GraduationCap size={24} />}
+                color="violet"
+              />
+              <StatCard
+                title="Total Students"
+                value={stats.total_students || 0}
+                icon={<Users size={24} />}
+                color="emerald"
+              />
+              <StatCard
+                title="Tracker Compliance"
+                value={`${stats.tracker_compliance || 0}%`}
+                icon={<TrendingUp size={24} />}
+                color="orange"
+              />
+            </div>
+
+            {/* Additional Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Facilitators</h3>
+                  <Users className="text-violet-600" size={20} />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.total_facilitators || 0}</p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Mentors</h3>
+                  <Users className="text-blue-600" size={20} />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.total_mentors || 0}</p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Today's Submissions</h3>
+                  <Activity className="text-emerald-600" size={20} />
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.today_submissions || 0}</p>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                <div className="space-y-3">
+                  {dashboardData.recentActivity.slice(0, 5).map((activity: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                      <div>
+                        <p className="font-medium text-gray-900">{activity.name}</p>
+                        <p className="text-sm text-gray-600">{activity.cohort_name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">{activity.hours_spent}h</p>
+                        <p className="text-xs text-gray-500">{new Date(activity.entry_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cohort Performance */}
+            {dashboardData?.cohortPerformance && dashboardData.cohortPerformance.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Cohort Performance</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Students</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Score</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recent Submissions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {dashboardData.cohortPerformance.map((cohort: any, index: number) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{cohort.name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{cohort.student_count || 0}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">
+                            {cohort.avg_score ? Number(cohort.avg_score).toFixed(1) : 'N/A'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{cohort.recent_submissions || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              <QuickActionCard
+                title="Manage Users"
+                description="Create and manage all system users"
+                icon={<Users size={24} />}
+                onClick={() => navigate('/executive/users')}
+              />
+              <QuickActionCard
+                title="View Reports"
+                description="Access detailed analytics and reports"
+                icon={<Activity size={24} />}
+                onClick={() => alert('Reports coming soon!')}
+              />
+              <QuickActionCard
+                title="System Settings"
+                description="Configure system-wide settings"
+                icon={<LayoutDashboard size={24} />}
+                onClick={() => alert('Settings coming soon!')}
+              />
+            </div>
+          </>
+        )}
+
+        {activeTab === 'mou' && <MOUUpload />}
+>>>>>>> e25b0f6 (hi)
       </main>
 
       {/* Modals */}

@@ -1,5 +1,5 @@
 import { Team } from "../types/teams.types";
-import { TeamsRepo } from "../repos/teams.repo";
+import { TeamsRepo } from "../Repos/teams.repo";
 
 const repo = new TeamsRepo();
 

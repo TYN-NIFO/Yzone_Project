@@ -9,11 +9,19 @@ interface TeamFormProps {
 export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
   const [cohorts, setCohorts] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
+<<<<<<< HEAD
+=======
+  const [mentors, setMentors] = useState<any[]>([]);
+>>>>>>> e25b0f6 (hi)
   const [formData, setFormData] = useState({
     cohortId: '',
     name: '',
     description: '',
     maxMembers: 5,
+<<<<<<< HEAD
+=======
+    mentorId: '',
+>>>>>>> e25b0f6 (hi)
   });
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,6 +29,10 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
 
   useEffect(() => {
     loadCohorts();
+<<<<<<< HEAD
+=======
+    loadMentors();
+>>>>>>> e25b0f6 (hi)
   }, []);
 
   useEffect(() => {
@@ -55,6 +67,22 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
     }
   };
 
+<<<<<<< HEAD
+=======
+  const loadMentors = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/facilitator/mentors', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success) setMentors(data.data);
+    } catch (err) {
+      console.error('Failed to load mentors:', err);
+    }
+  };
+
+>>>>>>> e25b0f6 (hi)
   const handleStudentToggle = (studentId: string) => {
     setSelectedStudents(prev => 
       prev.includes(studentId) 
@@ -174,6 +202,31 @@ export default function TeamForm({ onClose, onSuccess }: TeamFormProps) {
             />
           </div>
 
+<<<<<<< HEAD
+=======
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Assign Mentor *
+            </label>
+            <select
+              required
+              value={formData.mentorId}
+              onChange={(e) => setFormData({ ...formData, mentorId: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Mentor</option>
+              {mentors.map((mentor) => (
+                <option key={mentor.id} value={mentor.id}>
+                  {mentor.name} ({mentor.email})
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              The mentor will guide and review this team's progress
+            </p>
+          </div>
+
+>>>>>>> e25b0f6 (hi)
           {students.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

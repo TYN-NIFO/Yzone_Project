@@ -6,6 +6,10 @@ import { ProjectsController } from "../controllers/projects.controller";
 import * as SessionController from "../controllers/session.controller";
 import * as AttendanceController from "../controllers/attendance.controller";
 import { FacilitatorDashboardController } from "../controllers/dashboard.controller";
+<<<<<<< HEAD
+=======
+import { TrackerFeedbackController } from "../controllers/tracker-feedback.controller";
+>>>>>>> e25b0f6 (hi)
 import TenantController from "../../tynExecutive/controllers/tenant.controller";
 import authMiddleware from "../../../middleware/auth.middleware";
 import roleMiddleware from "../../../middleware/role.middleware";
@@ -14,6 +18,10 @@ import { AuthRequest } from "../../../types/custom-request";
 
 export const facilitatorRoutes = Router();
 const dashboardController = new FacilitatorDashboardController();
+<<<<<<< HEAD
+=======
+const trackerFeedbackController = new TrackerFeedbackController();
+>>>>>>> e25b0f6 (hi)
 
 facilitatorRoutes.use(authMiddleware);
 
@@ -145,3 +153,119 @@ facilitatorRoutes.get(
   "/sessions/:sessionId/attendance",
   AttendanceController.getAttendance
 );
+
+// Tracker Feedback Routes
+facilitatorRoutes.get("/tracker-entries", roleMiddleware(["facilitator"]), (req, res) => trackerFeedbackController.getTrackerEntries(req, res));
+facilitatorRoutes.post("/tracker-feedback", roleMiddleware(["facilitator"]), (req, res) => trackerFeedbackController.createFeedback(req, res));
+facilitatorRoutes.put("/tracker-feedback/:feedbackId", roleMiddleware(["facilitator"]), (req, res) => trackerFeedbackController.updateFeedback(req, res));
+facilitatorRoutes.delete("/tracker-feedback/:feedbackId", roleMiddleware(["facilitator"]), (req, res) => trackerFeedbackController.deleteFeedback(req, res));
+facilitatorRoutes.get("/tracker-feedback/stats", roleMiddleware(["facilitator"]), (req, res) => trackerFeedbackController.getFeedbackStats(req, res));
+
+// Student Creation Route
+facilitatorRoutes.post("/students", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.user!;
+    const { name, email, password, phone, whatsapp_number, cohort_id, role } = req.body;
+
+    if (!name || !email || !password || !cohort_id) {
+      return res.status(400).json({ error: 'Name, email, password, and cohort are required' });
+    }
+
+    // Hash password
+    const bcrypt = require('bcryptjs');
+    const password_hash = await bcrypt.hash(password, 10);
+
+    // Create student
+    const result = await pool.query(
+      `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
+       RETURNING id, name, email, role, cohort_id, created_at`,
+      [tenantId, cohort_id, name, email, password_hash, role || 'student', phone || null, whatsapp_number || null]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Student created successfully',
+      student: result.rows[0]
+    });
+  } catch (error: any) {
+    console.error('Error creating student:', error);
+    if (error.code === '23505') {
+      res.status(400).json({ error: 'Email already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to create student' });
+    }
+  }
+});
+
+// Mentor Creation Route
+facilitatorRoutes.post("/mentors", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.user!;
+    const { name, email, password, phone, whatsapp_number, cohort_id, company, designation, expertise } = req.body;
+
+    if (!name || !email || !password || !cohort_id) {
+      return res.status(400).json({ error: 'Name, email, password, and cohort are required' });
+    }
+
+    // Hash password
+    const bcrypt = require('bcryptjs');
+    const password_hash = await bcrypt.hash(password, 10);
+
+    // Create mentor
+    const result = await pool.query(
+      `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number, is_active)
+       VALUES ($1, $2, $3, $4, $5, 'industryMentor', $6, $7, true)
+       RETURNING id, name, email, role, cohort_id, created_at`,
+      [tenantId, cohort_id, name, email, password_hash, phone || null, whatsapp_number || null]
+    );
+
+    const mentorId = result.rows[0].id;
+
+    // Store additional mentor details if provided
+    if (company || designation || expertise) {
+      await pool.query(
+        `INSERT INTO mentor_profiles (mentor_id, company, designation, expertise)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (mentor_id) DO UPDATE 
+         SET company = COALESCE($2, mentor_profiles.company),
+             designation = COALESCE($3, mentor_profiles.designation),
+             expertise = COALESCE($4, mentor_profiles.expertise)`,
+        [mentorId, company || null, designation || null, expertise || null]
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Mentor created successfully',
+      mentor: result.rows[0]
+    });
+  } catch (error: any) {
+    console.error('Error creating mentor:', error);
+    if (error.code === '23505') {
+      res.status(400).json({ error: 'Email already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to create mentor' });
+    }
+  }
+});
+
+// Get Mentors List
+facilitatorRoutes.get("/mentors", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.user!;
+    
+    const result = await pool.query(
+      `SELECT id, name, email, phone, whatsapp_number, cohort_id, is_active, created_at
+       FROM users 
+       WHERE tenant_id = $1 AND role = 'industryMentor' AND deleted_at IS NULL
+       ORDER BY created_at DESC`,
+      [tenantId]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('Error fetching mentors:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});

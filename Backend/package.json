@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "@azure/identity": "^4.13.0",
+    "@azure/keyvault-secrets": "^4.10.0",
+>>>>>>> e25b0f6 (hi)
     "@azure/storage-blob": "^12.31.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
@@ -119,6 +124,7 @@
     "to-regex-range": "^5.0.1",
     "toidentifier": "^1.0.1",
     "touch": "^3.1.1",
+    "twilio": "^5.12.2",
     "type-is": "^2.0.1",
     "undefsafe": "^2.0.5",
     "undici-types": "^7.16.0",
@@ -126,6 +132,7 @@
     "uuid": "^13.0.0",
     "v8-compile-cache-lib": "^3.0.1",
     "vary": "^1.1.2",
+    "winston": "^3.19.0",
     "wrappy": "^1.0.2",
     "xtend": "^4.0.2",
     "yn": "^3.1.1"

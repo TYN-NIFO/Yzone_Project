@@ -63,7 +63,11 @@ export function Sidebar() {
 
     if (!currentUser) return null;
 
+<<<<<<< HEAD
     const role = currentUser.role;
+=======
+    const role = currentUser.role as Role;
+>>>>>>> e25b0f6 (hi)
     const navItems = NAV_ITEMS[role];
     const gradient = ROLE_COLORS[role];
 
@@ -102,7 +106,11 @@ export function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+<<<<<<< HEAD
                 {navItems.map(item => (
+=======
+                {navItems.map((item: NavItem) => (
+>>>>>>> e25b0f6 (hi)
                     <NavLink
                         key={item.to}
                         to={item.to}

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { X } from 'lucide-react';
+=======
+import { X, Upload } from 'lucide-react';
+>>>>>>> e25b0f6 (hi)
 
 interface TenantFormProps {
   onClose: () => void;
@@ -14,6 +18,12 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
     contactPhone: '',
     address: '',
   });
+<<<<<<< HEAD
+=======
+  const [mouFile, setMouFile] = useState<File | null>(null);
+  const [mouTitle, setMouTitle] = useState('');
+  const [mouDescription, setMouDescription] = useState('');
+>>>>>>> e25b0f6 (hi)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,7 +34,13 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
 
     try {
       const token = localStorage.getItem('token');
+<<<<<<< HEAD
       const response = await fetch('http://localhost:5000/api/executive/tenants', {
+=======
+      
+      // First create the tenant
+      const tenantResponse = await fetch('http://localhost:5000/api/executive/tenants', {
+>>>>>>> e25b0f6 (hi)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,6 +49,7 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
         body: JSON.stringify(formData),
       });
 
+<<<<<<< HEAD
       const data = await response.json();
 
       if (response.ok) {
@@ -41,6 +58,40 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
       } else {
         setError(data.message || 'Failed to create tenant');
       }
+=======
+      const tenantData = await tenantResponse.json();
+
+      if (!tenantResponse.ok) {
+        setError(tenantData.message || 'Failed to create tenant');
+        setLoading(false);
+        return;
+      }
+
+      // If MOU file is provided, upload it
+      if (mouFile && mouTitle) {
+        const mouFormData = new FormData();
+        mouFormData.append('file', mouFile);
+        mouFormData.append('title', mouTitle);
+        if (mouDescription) {
+          mouFormData.append('description', mouDescription);
+        }
+
+        const mouResponse = await fetch('http://localhost:5000/api/executive/mou/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: mouFormData,
+        });
+
+        if (!mouResponse.ok) {
+          console.error('Failed to upload MOU, but tenant was created');
+        }
+      }
+
+      onSuccess();
+      onClose();
+>>>>>>> e25b0f6 (hi)
     } catch (err: any) {
       setError(err.message || 'Failed to create tenant');
     } finally {
@@ -50,7 +101,11 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+<<<<<<< HEAD
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+=======
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+>>>>>>> e25b0f6 (hi)
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">Create New Tenant</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -58,13 +113,18 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
           </button>
         </div>
 
+<<<<<<< HEAD
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+=======
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+>>>>>>> e25b0f6 (hi)
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
 
+<<<<<<< HEAD
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Institution Name *
@@ -126,6 +186,125 @@ export default function TenantForm({ onClose, onSuccess }: TenantFormProps) {
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+=======
+          {/* Tenant Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Tenant Information</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Institution Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Institution Code *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.institutionCode}
+                onChange={(e) => setFormData({ ...formData, institutionCode: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Contact Email *
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.contactEmail}
+                onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Contact Phone
+              </label>
+              <input
+                type="tel"
+                value={formData.contactPhone}
+                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address
+              </label>
+              <textarea
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* MOU Upload (Optional) */}
+          <div className="space-y-4 border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              MOU Upload (Optional)
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                MOU Title
+              </label>
+              <input
+                type="text"
+                value={mouTitle}
+                onChange={(e) => setMouTitle(e.target.value)}
+                placeholder="e.g., Partnership Agreement 2024"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                MOU Description
+              </label>
+              <textarea
+                value={mouDescription}
+                onChange={(e) => setMouDescription(e.target.value)}
+                rows={2}
+                placeholder="Brief description of the MOU..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                MOU Document (PDF or Word)
+              </label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => setMouFile(e.target.files?.[0] || null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {mouFile && (
+                <p className="mt-1 text-sm text-gray-600">
+                  Selected: {mouFile.name}
+                </p>
+              )}
+            </div>
+>>>>>>> e25b0f6 (hi)
           </div>
 
           <div className="flex gap-3 pt-4">

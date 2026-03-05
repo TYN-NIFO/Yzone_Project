@@ -155,4 +155,184 @@ export class StudentDashboardController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+<<<<<<< HEAD
+=======
+
+  async getTodayTracker(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.user!.id;
+      const tenantId = req.user!.tenantId;
+
+      const result = await pool.query(
+        `SELECT te.*, 
+                tf.id as feedback_id, tf.feedback, tf.rating, tf.suggestions, 
+                tf.is_approved, tf.created_at as feedback_created_at,
+                u.name as facilitator_name
+         FROM tracker_entries te
+         LEFT JOIN tracker_feedback tf ON te.id = tf.tracker_entry_id
+         LEFT JOIN users u ON tf.facilitator_id = u.id
+         WHERE te.student_id = $1 AND te.tenant_id = $2 
+         AND te.entry_date = CURRENT_DATE
+         ORDER BY te.created_at DESC
+         LIMIT 1`,
+        [studentId, tenantId]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(200).json({ success: true, tracker: null });
+        return;
+      }
+
+      const row = result.rows[0];
+      const tracker = {
+        id: row.id,
+        student_id: row.student_id,
+        tenant_id: row.tenant_id,
+        cohort_id: row.cohort_id,
+        entry_date: row.entry_date,
+        tasks_completed: row.tasks_completed,
+        learning_summary: row.learning_summary,
+        hours_spent: row.hours_spent,
+        challenges: row.challenges,
+        proof_file_url: row.proof_file_url,
+        submitted_at: row.submitted_at,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        feedback: row.feedback_id ? {
+          id: row.feedback_id,
+          feedback: row.feedback,
+          rating: row.rating,
+          suggestions: row.suggestions,
+          is_approved: row.is_approved,
+          created_at: row.feedback_created_at,
+          facilitator_name: row.facilitator_name
+        } : null
+      };
+
+      res.status(200).json({ success: true, tracker });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async updateTodayTracker(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.user!.id;
+      const tenantId = req.user!.tenantId;
+      const { id } = req.params;
+      const { tasks_completed, learning_summary, hours_spent, challenges } = req.body;
+
+      // Check if tracker belongs to student and is from today
+      const checkResult = await pool.query(
+        `SELECT id FROM tracker_entries 
+         WHERE id = $1 AND student_id = $2 AND tenant_id = $3 AND entry_date = CURRENT_DATE`,
+        [id, studentId, tenantId]
+      );
+
+      if (checkResult.rows.length === 0) {
+        res.status(403).json({ 
+          success: false, 
+          error: 'Cannot modify tracker: either not found, not yours, or not from today' 
+        });
+        return;
+      }
+
+      // Update tracker
+      const result = await pool.query(
+        `UPDATE tracker_entries 
+         SET tasks_completed = COALESCE($1, tasks_completed),
+             learning_summary = COALESCE($2, learning_summary),
+             hours_spent = COALESCE($3, hours_spent),
+             challenges = COALESCE($4, challenges),
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5 AND student_id = $6 AND tenant_id = $7
+         RETURNING *`,
+        [tasks_completed, learning_summary, hours_spent, challenges, id, studentId, tenantId]
+      );
+
+      res.status(200).json({ success: true, tracker: result.rows[0] });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async getAttendanceStats(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.user!.id;
+      const cohortId = req.user!.cohortId;
+
+      // Get total sessions
+      const totalSessionsResult = await pool.query(
+        `SELECT COUNT(*) as total_sessions
+         FROM sessions s
+         WHERE s.cohort_id = $1`,
+        [cohortId]
+      );
+
+      // Get attended sessions
+      const attendedResult = await pool.query(
+        `SELECT COUNT(*) as attended_sessions
+         FROM attendance a
+         JOIN sessions s ON a.session_id = s.id
+         WHERE a.student_id = $1 AND a.is_present = true AND s.cohort_id = $2`,
+        [studentId, cohortId]
+      );
+
+      // Get recent attendance
+      const recentResult = await pool.query(
+        `SELECT a.id, a.is_present, a.marked_at,
+                s.title as session_title, s.session_date,
+                u.name as marked_by_name
+         FROM attendance a
+         JOIN sessions s ON a.session_id = s.id
+         JOIN users u ON a.marked_by = u.id
+         WHERE a.student_id = $1 AND s.cohort_id = $2
+         ORDER BY s.session_date DESC, a.marked_at DESC
+         LIMIT 10`,
+        [studentId, cohortId]
+      );
+
+      const totalSessions = parseInt(totalSessionsResult.rows[0].total_sessions);
+      const attendedSessions = parseInt(attendedResult.rows[0].attended_sessions);
+      const attendancePercentage = totalSessions > 0 ? 
+        Math.round((attendedSessions / totalSessions) * 100) : 0;
+
+      res.status(200).json({
+        success: true,
+        stats: {
+          total_sessions: totalSessions,
+          attended_sessions: attendedSessions,
+          attendance_percentage: attendancePercentage,
+          recent_attendance: recentResult.rows
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async getUpcomingSessions(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const cohortId = req.user!.cohortId;
+      const studentId = req.user!.id;
+
+      const result = await pool.query(
+        `SELECT s.id, s.title, s.session_date,
+                c.name as cohort_name,
+                CASE WHEN a.id IS NOT NULL THEN a.is_present ELSE NULL END as attendance_status
+         FROM sessions s
+         JOIN cohorts c ON s.cohort_id = c.id
+         LEFT JOIN attendance a ON s.id = a.session_id AND a.student_id = $1
+         WHERE s.cohort_id = $2 AND s.session_date >= CURRENT_DATE
+         ORDER BY s.session_date ASC
+         LIMIT 5`,
+        [studentId, cohortId]
+      );
+
+      res.status(200).json({ success: true, sessions: result.rows });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+>>>>>>> e25b0f6 (hi)
 }

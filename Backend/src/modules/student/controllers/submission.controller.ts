@@ -10,7 +10,7 @@ class SubmissionController {
       const file_url = req.file?.path;
       const id = uuidv4();
 
-      const result = await db.query(
+      const result = await pool.query(
         `INSERT INTO submissions
         (id, student_id, project_id, file_url, status)
         VALUES ($1,$2,$3,$4,$5)
@@ -32,7 +32,7 @@ class SubmissionController {
       const { status } = req.body;
       const file_url = req.file?.path;
 
-      const result = await db.query(
+      const result = await pool.query(
         `UPDATE submissions SET
           file_url = COALESCE($1, file_url),
           status = COALESCE($2, status)

@@ -16,11 +16,19 @@ DROP TABLE IF EXISTS tenants CASCADE;
 DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS message_status CASCADE;
+<<<<<<< HEAD
+=======
+DROP TYPE IF EXISTS mou_status CASCADE;
+>>>>>>> e25b0f6 (hi)
 
 -- Create ENUM types
 CREATE TYPE user_role AS ENUM ('tynExecutive', 'facilitator', 'facultyPrincipal', 'industryMentor', 'student');
 CREATE TYPE notification_type AS ENUM ('tracker_reminder', 'mentor_comment', 'system_alert', 'whatsapp_sent');
 CREATE TYPE message_status AS ENUM ('pending', 'sent', 'delivered', 'failed', 'read');
+<<<<<<< HEAD
+=======
+CREATE TYPE mou_status AS ENUM ('pending', 'approved', 'rejected', 'expired');
+>>>>>>> e25b0f6 (hi)
 
 -- TENANTS TABLE
 CREATE TABLE tenants (
@@ -312,6 +320,56 @@ CREATE INDEX idx_mentor_reviews_mentor ON mentor_reviews(mentor_id);
 CREATE INDEX idx_mentor_reviews_student ON mentor_reviews(student_id);
 CREATE INDEX idx_mentor_reviews_cohort ON mentor_reviews(cohort_id);
 
+<<<<<<< HEAD
+=======
+-- MOU UPLOADS TABLE
+CREATE TABLE mou_uploads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    uploaded_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    file_name VARCHAR(255) NOT NULL,
+    file_url TEXT NOT NULL,
+    file_size BIGINT,
+    file_type VARCHAR(50),
+    status mou_status DEFAULT 'pending',
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMP NULL,
+    rejection_reason TEXT,
+    expiry_date DATE,
+    version INTEGER DEFAULT 1,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
+);
+
+CREATE INDEX idx_mou_uploads_tenant ON mou_uploads(tenant_id);
+CREATE INDEX idx_mou_uploads_status ON mou_uploads(status);
+CREATE INDEX idx_mou_uploads_active ON mou_uploads(is_active) WHERE deleted_at IS NULL;
+CREATE INDEX idx_mou_uploads_created ON mou_uploads(created_at DESC);
+
+-- TRACKER FEEDBACK TABLE
+CREATE TABLE tracker_feedback (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tracker_entry_id UUID NOT NULL REFERENCES tracker_entries(id) ON DELETE CASCADE,
+    facilitator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    feedback TEXT NOT NULL,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    suggestions TEXT,
+    is_approved BOOLEAN DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_tracker_feedback_entry ON tracker_feedback(tracker_entry_id);
+CREATE INDEX idx_tracker_feedback_facilitator ON tracker_feedback(facilitator_id);
+CREATE INDEX idx_tracker_feedback_tenant ON tracker_feedback(tenant_id);
+CREATE INDEX idx_tracker_feedback_created ON tracker_feedback(created_at DESC);
+
+>>>>>>> e25b0f6 (hi)
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -332,6 +390,11 @@ CREATE TRIGGER update_sessions_updated_at BEFORE UPDATE ON sessions FOR EACH ROW
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_teams_updated_at BEFORE UPDATE ON teams FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mentor_reviews_updated_at BEFORE UPDATE ON mentor_reviews FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+<<<<<<< HEAD
+=======
+CREATE TRIGGER update_mou_uploads_updated_at BEFORE UPDATE ON mou_uploads FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_tracker_feedback_updated_at BEFORE UPDATE ON tracker_feedback FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+>>>>>>> e25b0f6 (hi)
 
 -- Insert sample data for testing
 INSERT INTO tenants (name, institution_code, contact_email, contact_phone) VALUES

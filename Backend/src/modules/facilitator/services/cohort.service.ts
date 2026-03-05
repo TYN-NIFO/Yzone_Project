@@ -1,4 +1,4 @@
-import { CohortRepo } from "../repos/cohort.repo";
+import { CohortRepo } from "../Repos/cohort.repo";
 import { Cohort } from "../types/cohort.types";
 
 export class CohortService {

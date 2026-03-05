@@ -34,8 +34,17 @@ router.get("/", StudentController.getAll);
 
 // TRACKER
 router.post("/tracker", roleMiddleware(["student"]), upload.single("file"), (req, res) => dashboardController.submitTracker(req, res));
+<<<<<<< HEAD
+=======
+router.get("/tracker/today", roleMiddleware(["student"]), (req, res) => dashboardController.getTodayTracker(req, res));
+router.put("/tracker/:id/update", roleMiddleware(["student"]), (req, res) => dashboardController.updateTodayTracker(req, res));
+>>>>>>> e25b0f6 (hi)
 router.patch("/tracker/:id", StudentController.updateTracker);
 router.get("/:id/tracker", StudentController.getTrackers);
+
+// Attendance Stats
+router.get("/attendance/stats", roleMiddleware(["student"]), (req, res) => dashboardController.getAttendanceStats(req, res));
+router.get("/upcoming-sessions", roleMiddleware(["student"]), (req, res) => dashboardController.getUpcomingSessions(req, res));
 
 // SUBMISSION
 router.post("/submit", upload.single("file"), StudentController.submitProject);
