@@ -19,7 +19,7 @@ import CohortForm from '../../components/executive/CohortForm';
 import { MOUUpload } from '../../components/executive/MOUUpload';
 
 export default function ExecutiveDashboard() {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -102,6 +102,11 @@ export default function ExecutiveDashboard() {
               </button>
             </div>
           </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'dashboard' && (
           <>
             {/* Stats Grid */}
