@@ -26,19 +26,15 @@ import MentorForm from '../../components/facilitator/MentorForm';
 
 
 export default function FacilitatorDashboard() {
-<<<<<<< HEAD
   const { logout, currentUser } = useAuth();
-=======
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
-  const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [showCohortForm, setShowCohortForm] = useState(false);
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
-const [showStudentForm, setShowStudentForm] = useState(false);
+  const [showStudentForm, setShowStudentForm] = useState(false);
   const [showMentorForm, setShowMentorForm] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [students, setStudents] = useState<any[]>([]);
@@ -69,13 +65,7 @@ const [showStudentForm, setShowStudentForm] = useState(false);
     }
   };
 
-<<<<<<< HEAD
   const loadStudents = async () => {
-    try {
-      const data = await dashboardService.getFacilitatorStudents();
-      setStudents(data);
-=======
-const loadStudents = async () => {
     try {
       const token = localStorage.getItem('token');
       const cohortId = dashboardData?.cohorts?.[0]?.id;
@@ -84,11 +74,10 @@ const loadStudents = async () => {
       const response = await fetch(`http://localhost:5000/api/facilitator/students/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await response.json();
-      if (data.success) {
-        setStudents(data.data);
+      const result = await response.json();
+      if (result.success) {
+        setStudents(result.data);
       }
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
     } catch (error) {
       console.error('Failed to load students:', error);
     }
@@ -96,10 +85,6 @@ const loadStudents = async () => {
 
   const loadTeams = async () => {
     try {
-<<<<<<< HEAD
-      const data = await dashboardService.getFacilitatorTeams();
-      setTeams(data);
-=======
       const token = localStorage.getItem('token');
       const cohortId = dashboardData?.cohorts?.[0]?.id;
       if (!cohortId) return;
@@ -107,11 +92,10 @@ const loadStudents = async () => {
       const response = await fetch(`http://localhost:5000/api/facilitator/teams/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await response.json();
-      if (data.success) {
-        setTeams(data.data);
+      const result = await response.json();
+      if (result.success) {
+        setTeams(result.data);
       }
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
     } catch (error) {
       console.error('Failed to load teams:', error);
     }
@@ -119,38 +103,25 @@ const loadStudents = async () => {
 
   const loadMentors = async () => {
     try {
-<<<<<<< HEAD
-      const data = await dashboardService.getFacilitatorMentors();
-      setMentors(data);
-=======
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/facilitator/mentors', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await response.json();
-      if (data.success) {
-        setMentors(data.data);
+      const result = await response.json();
+      if (result.success) {
+        setMentors(result.data);
       }
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
     } catch (error) {
       console.error('Failed to load mentors:', error);
     }
   };
 
-<<<<<<< HEAD
-=======
 
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-<<<<<<< HEAD
-  const stats = dashboardData?.stats || {};
-  const cohorts = dashboardData?.cohorts || [];
-  const dashboardStudents = dashboardData?.students || [];
-=======
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -164,9 +135,7 @@ const loadStudents = async () => {
 
   const stats = dashboardData?.stats || {};
   const cohorts = dashboardData?.cohorts || [];
-const dashboardStudents = dashboardData?.students || [];
-
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
+  const dashboardStudents = dashboardData?.students || [];
   const trackerStatus = dashboardData?.trackerStatus || [];
 
   return (
@@ -235,8 +204,6 @@ const dashboardStudents = dashboardData?.students || [];
               </button>
             </div>
           </div>
-<<<<<<< HEAD
-=======
 {/* Navigation Tabs */}
           <div className="mt-4 border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
@@ -287,17 +254,12 @@ const dashboardStudents = dashboardData?.students || [];
             </nav>
           </div>
 
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-<<<<<<< HEAD
         {activeTab === 'dashboard' && (
-=======
-{activeTab === 'dashboard' && (
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
           <>
             {/* Assigned Cohorts */}
             {cohorts.length > 0 && (

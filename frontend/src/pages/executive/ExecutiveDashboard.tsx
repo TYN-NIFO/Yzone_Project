@@ -21,18 +21,13 @@ import { MOUUpload } from '../../components/executive/MOUUpload';
 
 
 export default function ExecutiveDashboard() {
-<<<<<<< HEAD
   const { logout, currentUser } = useAuth();
-=======
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
-  const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [showTenantForm, setShowTenantForm] = useState(false);
   const [showCohortForm, setShowCohortForm] = useState(false);
-const [activeTab, setActiveTab] = useState('dashboard');
-
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
     loadDashboard();
@@ -111,8 +106,6 @@ const [activeTab, setActiveTab] = useState('dashboard');
               </button>
             </div>
           </div>
-<<<<<<< HEAD
-=======
 {/* Navigation Tabs */}
           <div className="mt-4 border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
@@ -141,17 +134,12 @@ const [activeTab, setActiveTab] = useState('dashboard');
             </nav>
           </div>
 
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-<<<<<<< HEAD
         {activeTab === 'dashboard' && (
-=======
-{activeTab === 'dashboard' && (
->>>>>>> fc3343ab3028ed5b8ad61139e1b2f12b76ff80eb
           <>
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
