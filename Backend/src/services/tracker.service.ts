@@ -5,7 +5,15 @@ const azureStorage = new AzureStorageService();
 
 export class TrackerService {
   async createTrackerEntry(data: any, file?: Express.Multer.File) {
-    const { studentId, tenantId, cohortId, entryDate, tasksCompleted, learningSummary, hoursSpent, challenges } = data;
+    // Handle both camelCase and snake_case field names
+    const studentId = data.studentId || data.student_id;
+    const tenantId = data.tenantId || data.tenant_id;
+    const cohortId = data.cohortId || data.cohort_id;
+    const entryDate = data.entryDate || data.entry_date || new Date().toISOString().split('T')[0];
+    const tasksCompleted = data.tasksCompleted || data.tasks_completed;
+    const learningSummary = data.learningSummary || data.learning_summary;
+    const hoursSpent = data.hoursSpent || data.hours_spent;
+    const challenges = data.challenges;
 
     let proofFileUrl = null;
 

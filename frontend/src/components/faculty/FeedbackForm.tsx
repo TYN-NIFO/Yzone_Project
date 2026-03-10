@@ -33,7 +33,17 @@ export default function FeedbackForm({ student, onClose, onSuccess }: FeedbackFo
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/faculty/feedback', {
+      
+      if (!token) {
+        setError('No authentication token found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('📝 Submitting faculty feedback for student:', student.id);
+      console.log('📝 Token exists:', !!token);
+      
+      const response = await fetch('/api/faculty/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,15 +55,27 @@ export default function FeedbackForm({ student, onClose, onSuccess }: FeedbackFo
         }),
       });
 
+      console.log('📝 Feedback response status:', response.status);
+      
       const data = await response.json();
+      console.log('📝 Feedback response data:', data);
 
       if (response.ok) {
+        console.log('✅ Feedback submitted successfully');
         onSuccess();
         onClose();
       } else {
-        setError(data.message || 'Failed to submit feedback');
+        console.error('❌ Feedback submission failed:', data);
+        
+        // If it's a 401 or 403, suggest re-login
+        if (response.status === 401 || response.status === 403) {
+          setError(data.message + ' - Please try logging out and logging in again.');
+        } else {
+          setError(data.message || 'Failed to submit feedback');
+        }
       }
     } catch (err: any) {
+      console.error('❌ Feedback submission error:', err);
       setError(err.message || 'Failed to submit feedback');
     } finally {
       setLoading(false);

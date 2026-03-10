@@ -50,7 +50,38 @@ export class StudentDashboardController {
         [studentId, tenantId]
       );
 
+      const facultyFeedback = await pool.query(
+        `SELECT ff.academic_rating, ff.behavior_rating, ff.participation_rating, 
+                ff.feedback, ff.academic_comments, ff.behavior_comments, 
+                ff.recommendations, ff.feedback_date, u.name as faculty_name
+         FROM faculty_feedback ff
+         JOIN users u ON ff.faculty_id = u.id
+         WHERE ff.student_id = $1 AND ff.tenant_id = $2
+         ORDER BY ff.feedback_date DESC
+         LIMIT 5`,
+        [studentId, tenantId]
+      );
+
       const topLeaderboard = await leaderboardService.getLeaderboard(cohortId, tenantId, 10);
+
+      // Get student's projects (both individual and team projects)
+      const projects = await pool.query(
+        `SELECT DISTINCT p.id, 
+                COALESCE(p.title, p.name) as title, 
+                p.description, p.type, p.status, 
+                p.start_date, p.end_date, p.created_at,
+                t.name as team_name, t.id as team_id,
+                s.id as submission_id, s.status as submission_status, 
+                s.submitted_at, s.grade, s.feedback, s.reviewed_at
+         FROM projects p
+         LEFT JOIN teams t ON p.team_id = t.id
+         LEFT JOIN team_members tm ON t.id = tm.team_id
+         LEFT JOIN submissions s ON p.id = s.project_id AND s.student_id = $1
+         WHERE p.cohort_id = $2 AND p.tenant_id = $3
+         AND (p.team_id IS NULL OR tm.student_id = $1)
+         ORDER BY p.created_at DESC`,
+        [studentId, cohortId, tenantId]
+      );
 
       res.status(200).json({
         success: true,
@@ -60,7 +91,9 @@ export class StudentDashboardController {
           recentTrackers: recentTrackers.rows,
           notifications: notifications.rows,
           mentorFeedback: mentorFeedback.rows,
+          facultyFeedback: facultyFeedback.rows,
           topLeaderboard,
+          projects: projects.rows,
         },
       });
     } catch (error: any) {
@@ -75,13 +108,15 @@ export class StudentDashboardController {
         studentId: req.user!.id,
         tenantId: req.user!.tenantId,
         cohortId: req.user!.cohortId,
+        entryDate: req.body.entry_date || new Date().toISOString().split('T')[0], // Default to today
       };
 
       const file = req.file;
       const tracker = await trackerService.createTrackerEntry(trackerData, file);
 
-      res.status(201).json({ success: true, data: tracker });
+      res.status(201).json({ success: true, tracker });
     } catch (error: any) {
+      console.error('Error submitting tracker:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   }
@@ -259,6 +294,14 @@ export class StudentDashboardController {
       const studentId = req.user!.id;
       const cohortId = req.user!.cohortId;
 
+      if (!cohortId) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Student not assigned to any cohort' 
+        });
+        return;
+      }
+
       // Get total sessions
       const totalSessionsResult = await pool.query(
         `SELECT COUNT(*) as total_sessions
@@ -279,11 +322,11 @@ export class StudentDashboardController {
       // Get recent attendance
       const recentResult = await pool.query(
         `SELECT a.id, a.is_present, a.marked_at,
-                s.title as session_title, s.session_date,
+                s.id as session_id, s.title as session_title, s.session_date,
                 u.name as marked_by_name
          FROM attendance a
          JOIN sessions s ON a.session_id = s.id
-         JOIN users u ON a.marked_by = u.id
+         LEFT JOIN users u ON a.marked_by = u.id
          WHERE a.student_id = $1 AND s.cohort_id = $2
          ORDER BY s.session_date DESC, a.marked_at DESC
          LIMIT 10`,
@@ -297,14 +340,16 @@ export class StudentDashboardController {
 
       res.status(200).json({
         success: true,
-        stats: {
+        data: {
           total_sessions: totalSessions,
           attended_sessions: attendedSessions,
+          absent_sessions: totalSessions - attendedSessions,
           attendance_percentage: attendancePercentage,
           recent_attendance: recentResult.rows
         }
       });
     } catch (error: any) {
+      console.error('Error getting attendance stats:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -313,6 +358,14 @@ export class StudentDashboardController {
     try {
       const cohortId = req.user!.cohortId;
       const studentId = req.user!.id;
+
+      if (!cohortId) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Student not assigned to any cohort' 
+        });
+        return;
+      }
 
       const result = await pool.query(
         `SELECT s.id, s.title, s.session_date,
@@ -327,8 +380,118 @@ export class StudentDashboardController {
         [studentId, cohortId]
       );
 
-      res.status(200).json({ success: true, sessions: result.rows });
+      res.status(200).json({ success: true, data: result.rows });
     } catch (error: any) {
+      console.error('Error getting upcoming sessions:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async getAttendanceHistory(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.user!.id;
+      const cohortId = req.user!.cohortId;
+      const { startDate, endDate, limit = 30 } = req.query;
+
+      if (!cohortId) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Student not assigned to any cohort' 
+        });
+        return;
+      }
+
+      let query = `
+        SELECT s.id as session_id, s.title, s.session_date,
+               a.id as attendance_id, a.is_present, a.marked_at,
+               u.name as marked_by_name
+        FROM sessions s
+        LEFT JOIN attendance a ON s.id = a.session_id AND a.student_id = $1
+        LEFT JOIN users u ON a.marked_by = u.id
+        WHERE s.cohort_id = $2
+      `;
+
+      const params: any[] = [studentId, cohortId];
+      let paramCount = 2;
+
+      if (startDate) {
+        paramCount++;
+        query += ` AND s.session_date >= $${paramCount}`;
+        params.push(startDate);
+      }
+
+      if (endDate) {
+        paramCount++;
+        query += ` AND s.session_date <= $${paramCount}`;
+        params.push(endDate);
+      }
+
+      query += ` ORDER BY s.session_date DESC LIMIT $${paramCount + 1}`;
+      params.push(limit);
+
+      const result = await pool.query(query, params);
+
+      res.status(200).json({ 
+        success: true, 
+        data: result.rows 
+      });
+    } catch (error: any) {
+      console.error('Error getting attendance history:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async getTrackerHistory(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.user!.id;
+      const tenantId = req.user!.tenantId;
+      const { limit = 30 } = req.query;
+
+      const result = await pool.query(
+        `SELECT te.*, 
+                tf.id as feedback_id, tf.feedback, tf.rating, tf.suggestions, 
+                tf.is_approved, tf.created_at as feedback_created_at,
+                u.name as facilitator_name
+         FROM tracker_entries te
+         LEFT JOIN tracker_feedback tf ON te.id = tf.tracker_entry_id
+         LEFT JOIN users u ON tf.facilitator_id = u.id
+         WHERE te.student_id = $1 AND te.tenant_id = $2
+         ORDER BY te.entry_date DESC
+         LIMIT $3`,
+        [studentId, tenantId, limit]
+      );
+
+      const trackers = result.rows.map(row => ({
+        id: row.id,
+        student_id: row.student_id,
+        tenant_id: row.tenant_id,
+        cohort_id: row.cohort_id,
+        entry_date: row.entry_date,
+        tasks_completed: row.tasks_completed,
+        learning_summary: row.learning_summary,
+        hours_spent: row.hours_spent,
+        challenges: row.challenges,
+        proof_file_url: row.proof_file_url,
+        submitted_at: row.submitted_at,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        feedback: row.feedback_id ? {
+          id: row.feedback_id,
+          feedback: row.feedback,
+          rating: row.rating,
+          suggestions: row.suggestions,
+          is_approved: row.is_approved,
+          created_at: row.feedback_created_at,
+          facilitator_name: row.facilitator_name
+        } : null
+      }));
+
+      res.status(200).json({ 
+        success: true, 
+        data: trackers 
+      });
+    } catch (error: any) {
+      console.error('Error getting tracker history:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   }

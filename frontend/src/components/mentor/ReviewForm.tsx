@@ -30,7 +30,17 @@ export default function ReviewForm({ student, onClose, onSuccess }: ReviewFormPr
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/mentor/review', {
+      
+      if (!token) {
+        setError('No authentication token found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('📝 Submitting review for student:', student.id);
+      console.log('📝 Token exists:', !!token);
+      
+      const response = await fetch('/api/mentor/review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,15 +55,27 @@ export default function ReviewForm({ student, onClose, onSuccess }: ReviewFormPr
         }),
       });
 
+      console.log('📝 Review response status:', response.status);
+      
       const data = await response.json();
+      console.log('📝 Review response data:', data);
 
       if (response.ok) {
+        console.log('✅ Review submitted successfully');
         onSuccess();
         onClose();
       } else {
-        setError(data.message || 'Failed to submit review');
+        console.error('❌ Review submission failed:', data);
+        
+        // If it's a 401 or 403, suggest re-login
+        if (response.status === 401 || response.status === 403) {
+          setError(data.message + ' - Please try logging out and logging in again.');
+        } else {
+          setError(data.message || 'Failed to submit review');
+        }
       }
     } catch (err: any) {
+      console.error('❌ Review submission error:', err);
       setError(err.message || 'Failed to submit review');
     } finally {
       setLoading(false);

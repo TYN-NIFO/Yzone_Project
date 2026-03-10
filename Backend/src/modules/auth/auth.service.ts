@@ -35,6 +35,8 @@ export class AuthService {
       role: user.role,
       tenantId: user.tenant_id,
       cohortId: user.cohort_id,
+      name: user.name,
+      email: user.email,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET || "fallback-secret");
@@ -80,6 +82,8 @@ export class AuthService {
       role: user.role,
       tenantId: user.tenant_id,
       cohortId: user.cohort_id,
+      name: user.name,
+      email: user.email,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET || "fallback-secret");

@@ -78,8 +78,8 @@ export class MentorService {
     const result = await pool.query(
       `SELECT u.id, u.name, u.email, u.phone, c.name as cohort_name, ma.assigned_at,
         (SELECT COUNT(*) FROM tracker_entries WHERE student_id = u.id AND entry_date >= CURRENT_DATE - INTERVAL '7 days') as recent_trackers,
-        (SELECT total_score FROM leaderboard WHERE student_id = u.id) as score,
-        (SELECT rank FROM leaderboard WHERE student_id = u.id) as rank
+        (SELECT total_score FROM leaderboard WHERE student_id = u.id LIMIT 1) as score,
+        (SELECT rank FROM leaderboard WHERE student_id = u.id LIMIT 1) as rank
        FROM mentor_assignments ma
        JOIN users u ON ma.student_id = u.id
        LEFT JOIN cohorts c ON u.cohort_id = c.id

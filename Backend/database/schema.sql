@@ -184,6 +184,7 @@ CREATE TABLE mentor_assignments (
     student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     cohort_id UUID NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
+    team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -194,6 +195,7 @@ CREATE TABLE mentor_assignments (
 CREATE INDEX idx_mentor_assignments_mentor ON mentor_assignments(mentor_id);
 CREATE INDEX idx_mentor_assignments_student ON mentor_assignments(student_id);
 CREATE INDEX idx_mentor_assignments_cohort ON mentor_assignments(cohort_id);
+CREATE INDEX idx_mentor_assignments_team ON mentor_assignments(team_id);
 CREATE INDEX idx_mentor_assignments_active ON mentor_assignments(is_active) WHERE is_active = true;
 
 -- AZURE BLOB FILES TABLE
@@ -275,6 +277,7 @@ CREATE TABLE teams (
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     cohort_id UUID NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    mentor_id UUID REFERENCES users(id) ON DELETE SET NULL,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -282,6 +285,7 @@ CREATE TABLE teams (
 
 CREATE INDEX idx_teams_project ON teams(project_id);
 CREATE INDEX idx_teams_cohort ON teams(cohort_id);
+CREATE INDEX idx_teams_mentor ON teams(mentor_id);
 
 -- TEAM MEMBERS TABLE
 CREATE TABLE team_members (
@@ -341,6 +345,26 @@ CREATE INDEX idx_mou_uploads_tenant ON mou_uploads(tenant_id);
 CREATE INDEX idx_mou_uploads_status ON mou_uploads(status);
 CREATE INDEX idx_mou_uploads_active ON mou_uploads(is_active) WHERE deleted_at IS NULL;
 CREATE INDEX idx_mou_uploads_created ON mou_uploads(created_at DESC);
+
+-- TRACKER REMINDERS TABLE (for WhatsApp reminder system)
+CREATE TABLE tracker_reminders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    cohort_id UUID NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
+    reminder_date DATE NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    message_sent BOOLEAN DEFAULT false,
+    whatsapp_message_id VARCHAR(255),
+    sent_at TIMESTAMP NULL,
+    delivery_status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(student_id, reminder_date)
+);
+
+CREATE INDEX idx_tracker_reminders_student ON tracker_reminders(student_id);
+CREATE INDEX idx_tracker_reminders_date ON tracker_reminders(reminder_date);
+CREATE INDEX idx_tracker_reminders_status ON tracker_reminders(delivery_status);
 
 -- TRACKER FEEDBACK TABLE
 CREATE TABLE tracker_feedback (

@@ -1,14 +1,21 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { ProjectsService } from "../services/projects.service";
+import { AuthRequest } from "../../../types/custom-request";
 
 const service = new ProjectsService();
 
 export class ProjectsController {
-  static async createProject(req: Request, res: Response) {
+  static async createProject(req: AuthRequest, res: Response) {
     try {
-      const project = await service.createProject(req.body);
+      const tenantId = req.user!.tenantId;
+      const projectData = {
+        ...req.body,
+        tenantId
+      };
+      const project = await service.createProject(projectData);
       res.status(201).json({ success: true, data: project });
     } catch (err: any) {
+      console.error('Error creating project:', err);
       res.status(500).json({ success: false, message: err.message });
     }
   }

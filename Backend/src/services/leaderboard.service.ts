@@ -55,10 +55,11 @@ export class LeaderboardService {
   private async calculateAttendanceScore(studentId: string, cohortId: string): Promise<number> {
     const result = await pool.query(
       `SELECT 
-        COUNT(*) FILTER (WHERE is_present = true) as present,
+        COUNT(*) FILTER (WHERE a.is_present = true) as present,
         COUNT(*) as total
-       FROM attendance 
-       WHERE student_id = $1 AND cohort_id = $2`,
+       FROM attendance a
+       JOIN sessions s ON a.session_id = s.id
+       WHERE a.student_id = $1 AND s.cohort_id = $2`,
       [studentId, cohortId]
     );
     const { present, total } = result.rows[0];

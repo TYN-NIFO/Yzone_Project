@@ -7,6 +7,7 @@ import * as SessionController from "../controllers/session.controller";
 import * as AttendanceController from "../controllers/attendance.controller";
 import { FacilitatorDashboardController } from "../controllers/dashboard.controller";
 import { TrackerFeedbackController } from "../controllers/tracker-feedback.controller";
+import { DailyAttendanceController } from "../controllers/daily-attendance.controller";
 import TenantController from "../../tynExecutive/controllers/tenant.controller";
 import authMiddleware from "../../../middleware/auth.middleware";
 import roleMiddleware from "../../../middleware/role.middleware";
@@ -60,6 +61,11 @@ facilitatorRoutes.get("/today-sessions", roleMiddleware(["facilitator"]), async 
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// Session Management Routes
+facilitatorRoutes.post("/sessions", roleMiddleware(["facilitator"]), SessionController.createSession);
+facilitatorRoutes.get("/sessions/:cohortId", roleMiddleware(["facilitator"]), SessionController.getSessionsByCohort);
+facilitatorRoutes.delete("/sessions/:sessionId", roleMiddleware(["facilitator"]), SessionController.deleteSession);
 
 facilitatorRoutes.get("/session-students/:sessionId", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
   try {
@@ -133,6 +139,142 @@ facilitatorRoutes.post("/projects", ProjectsController.createProject);
 facilitatorRoutes.get("/projects/cohort/:cohortId", ProjectsController.getProjectsByCohort);
 facilitatorRoutes.get("/projects/team/:teamId", ProjectsController.getProjectsByTeam);
 
+// Submission Management Routes
+facilitatorRoutes.get("/projects/:projectId/submissions", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { projectId } = req.params;
+    const tenantId = req.user!.tenantId;
+
+    console.log(`📋 Fetching submissions for project ${projectId}`);
+
+    const result = await pool.query(
+      `SELECT s.*, u.name as student_name, u.email as student_email,
+              t.name as team_name, p.name as project_title, p.title as project_name
+       FROM submissions s
+       JOIN users u ON s.student_id = u.id
+       JOIN projects p ON s.project_id = p.id
+       LEFT JOIN teams t ON p.team_id = t.id
+       WHERE s.project_id = $1 AND s.tenant_id = $2
+       ORDER BY s.submitted_at DESC`,
+      [projectId, tenantId],
+    );
+
+    console.log(`✅ Found ${result.rows.length} submissions`);
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('❌ Error fetching submissions:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+facilitatorRoutes.put("/submissions/:submissionId/status", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { submissionId } = req.params;
+    const { status, feedback, grade } = req.body;
+    const facilitatorId = req.user!.id;
+    const tenantId = req.user!.tenantId;
+
+    console.log(`📝 Updating submission ${submissionId} to status: ${status}`);
+
+    // Validate status
+    const validStatuses = [
+      "SUBMITTED",
+      "UNDER_REVIEW",
+      "APPROVED",
+      "REJECTED",
+      "NEEDS_REVISION",
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be one of: " + validStatuses.join(", "),
+      });
+    }
+
+    // Update submission
+    const result = await pool.query(
+      `UPDATE submissions 
+       SET status = $1, 
+           reviewed_by = $2, 
+           reviewed_at = CURRENT_TIMESTAMP,
+           feedback = $3,
+           grade = $4
+       WHERE id = $5 AND tenant_id = $6
+       RETURNING *`,
+      [status, facilitatorId, feedback, grade, submissionId, tenantId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Submission not found",
+      });
+    }
+
+    // Create notification for student
+    await pool.query(
+      `INSERT INTO notifications (id, user_id, tenant_id, type, title, message)
+       SELECT gen_random_uuid(), student_id, $1, 'system_alert', 
+              'Project Submission Reviewed', 
+              $2
+       FROM submissions WHERE id = $3`,
+      [
+        tenantId,
+        `Your submission has been ${status.toLowerCase().replace('_', ' ')}${feedback ? ': ' + feedback : ''}`,
+        submissionId,
+      ],
+    );
+
+    console.log(`✅ Submission updated successfully`);
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error: any) {
+    console.error('❌ Error updating submission:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+facilitatorRoutes.put("/projects/:projectId/status", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { projectId } = req.params;
+    const { status } = req.body;
+    const tenantId = req.user!.tenantId;
+
+    console.log(`📊 Updating project ${projectId} to status: ${status}`);
+
+    const validStatuses = [
+      "PENDING",
+      "IN_PROGRESS",
+      "SUBMITTED",
+      "COMPLETED",
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be one of: " + validStatuses.join(", "),
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE projects SET status = $1, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2 AND tenant_id = $3 RETURNING *`,
+      [status, projectId, tenantId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    console.log(`✅ Project status updated successfully`);
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error: any) {
+    console.error('❌ Error updating project status:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 facilitatorRoutes.get(
   "/cohorts/:cohortId/today-session",
   SessionController.getTodaySession
@@ -146,6 +288,25 @@ facilitatorRoutes.post(
 facilitatorRoutes.get(
   "/sessions/:sessionId/attendance",
   AttendanceController.getAttendance
+);
+
+// Daily Attendance Routes (not session-based)
+facilitatorRoutes.post(
+  "/attendance/daily",
+  roleMiddleware(["facilitator"]),
+  DailyAttendanceController.markDailyAttendance
+);
+
+facilitatorRoutes.get(
+  "/attendance/daily",
+  roleMiddleware(["facilitator"]),
+  DailyAttendanceController.getDailyAttendance
+);
+
+facilitatorRoutes.get(
+  "/attendance/summary",
+  roleMiddleware(["facilitator"]),
+  DailyAttendanceController.getAttendanceSummary
 );
 
 // Tracker Feedback Routes
@@ -196,7 +357,7 @@ facilitatorRoutes.post("/students", roleMiddleware(["facilitator"]), async (req:
 facilitatorRoutes.post("/mentors", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
   try {
     const { tenantId } = req.user!;
-    const { name, email, password, phone, whatsapp_number, cohort_id, company, designation, expertise } = req.body;
+    const { name, email, password, phone, whatsapp_number, cohort_id, auto_assign_students } = req.body;
 
     if (!name || !email || !password || !cohort_id) {
       return res.status(400).json({ error: 'Name, email, password, and cohort are required' });
@@ -216,23 +377,33 @@ facilitatorRoutes.post("/mentors", roleMiddleware(["facilitator"]), async (req: 
 
     const mentorId = result.rows[0].id;
 
-    // Store additional mentor details if provided
-    if (company || designation || expertise) {
-      await pool.query(
-        `INSERT INTO mentor_profiles (mentor_id, company, designation, expertise)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (mentor_id) DO UPDATE 
-         SET company = COALESCE($2, mentor_profiles.company),
-             designation = COALESCE($3, mentor_profiles.designation),
-             expertise = COALESCE($4, mentor_profiles.expertise)`,
-        [mentorId, company || null, designation || null, expertise || null]
+    // Auto-assign to all students in cohort if requested
+    if (auto_assign_students) {
+      const studentsResult = await pool.query(
+        `SELECT id FROM users WHERE cohort_id = $1 AND role = 'student' AND deleted_at IS NULL`,
+        [cohort_id]
       );
+
+      for (const student of studentsResult.rows) {
+        await pool.query(
+          `INSERT INTO mentor_assignments (mentor_id, student_id, tenant_id, cohort_id, is_active)
+           VALUES ($1, $2, $3, $4, true)
+           ON CONFLICT (mentor_id, student_id, cohort_id) DO NOTHING`,
+          [mentorId, student.id, tenantId, cohort_id]
+        );
+      }
+
+      console.log(`Auto-assigned ${studentsResult.rows.length} students to mentor ${name}`);
     }
 
     res.status(201).json({
       success: true,
       message: 'Mentor created successfully',
-      mentor: result.rows[0]
+      mentor: result.rows[0],
+      assigned_students: auto_assign_students ? (await pool.query(
+        `SELECT COUNT(*) as count FROM mentor_assignments WHERE mentor_id = $1`,
+        [mentorId]
+      )).rows[0].count : 0
     });
   } catch (error: any) {
     console.error('Error creating mentor:', error);

@@ -19,6 +19,13 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
     
+    console.log('🌐 API Request:', {
+      url,
+      method: options.method || 'GET',
+      baseURL: this.baseURL,
+      endpoint
+    });
+    
     const config: RequestInit = {
       ...options,
       headers: {
@@ -35,13 +42,24 @@ class ApiService {
       const response = await fetch(url, config);
       const data = await response.json();
 
+      console.log('🌐 API Response:', {
+        url,
+        status: response.status,
+        ok: response.ok,
+        data
+      });
+
       if (!response.ok) {
         throw new Error(data.message || 'Request failed');
       }
 
       return data;
     } catch (error: any) {
-      console.error('API Error:', error);
+      console.error('🌐 API Error:', {
+        url,
+        error: error.message,
+        details: error
+      });
       throw error;
     }
   }

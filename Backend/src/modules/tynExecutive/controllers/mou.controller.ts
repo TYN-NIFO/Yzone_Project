@@ -42,12 +42,13 @@ export class MOUController {
       );
 
       res.status(201).json({
+        success: true,
         message: 'MOU uploaded successfully',
-        mou
+        data: mou
       });
     } catch (error) {
       console.error('Error uploading MOU:', error);
-      res.status(500).json({ error: 'Failed to upload MOU' });
+      res.status(500).json({ success: false, error: 'Failed to upload MOU' });
     }
   }
 

@@ -10,7 +10,9 @@ import {
 Plus,
   LayoutDashboard,
   CheckCircle,
-  Edit3
+  Edit3,
+  FolderKanban,
+  Upload
 
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
@@ -36,10 +38,25 @@ const [activeTab, setActiveTab] = useState('dashboard');
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const data = await dashboardService.getStudentDashboard();
-      setDashboardData(data);
-    } catch (error) {
-      console.error('Failed to load dashboard:', error);
+      console.log('🔄 Loading student dashboard...');
+      const response = await dashboardService.getStudentDashboard();
+      console.log('✅ Student dashboard response:', response);
+      
+      if (response) {
+        setDashboardData(response);
+        console.log('✅ Student dashboard data set:', response);
+      } else {
+        console.error('❌ Invalid response structure:', response);
+        setDashboardData({});
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to load dashboard:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        stack: error.stack
+      });
+      setDashboardData({});
     } finally {
       setLoading(false);
     }
@@ -66,7 +83,9 @@ const [activeTab, setActiveTab] = useState('dashboard');
   const recentTrackers = dashboardData?.recentTrackers || [];
   const notifications = dashboardData?.notifications || [];
   const mentorFeedback = dashboardData?.mentorFeedback || [];
+  const facultyFeedback = dashboardData?.facultyFeedback || [];
   const topLeaderboard = dashboardData?.topLeaderboard || [];
+  const projects = dashboardData?.projects || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -130,6 +149,17 @@ const [activeTab, setActiveTab] = useState('dashboard');
               >
                 <Edit3 className="w-4 h-4 inline mr-2" />
                 Edit Today's Tracker
+              </button>
+              <button
+                onClick={() => setActiveTab('projects')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'projects'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FolderKanban className="w-4 h-4 inline mr-2" />
+                My Projects
               </button>
             </nav>
           </div>
@@ -232,40 +262,68 @@ const [activeTab, setActiveTab] = useState('dashboard');
                     </div>
                   ))}
                   {mentorFeedback.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">No feedback yet</p>
+                    <p className="text-center text-gray-500 py-8">No mentor feedback yet</p>
                   )}
                 </div>
               </div>
 
-              {/* Leaderboard */}
+              {/* Faculty Feedback */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Trophy className="text-yellow-500" size={20} />
-                  Top Performers
-                </h3>
-                <div className="space-y-2">
-                  {topLeaderboard.map((student: any, index: number) => (
-                    <div 
-                      key={index} 
-                      className={`flex items-center justify-between p-3 rounded-lg ${
-                        student.student_id === currentUser?.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`font-bold ${index < 3 ? 'text-yellow-600' : 'text-gray-600'}`}>
-                          #{student.rank}
-                        </span>
-                        <p className="font-medium text-gray-900">{student.student_name}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Faculty Feedback</h3>
+                <div className="space-y-4">
+                  {facultyFeedback.map((feedback: any, index: number) => (
+                    <div key={index} className="border-l-4 border-green-500 pl-4 py-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium text-gray-900">{feedback.faculty_name}</p>
+                        <div className="flex gap-2 text-xs">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">Academic: {feedback.academic_rating}/5</span>
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded">Behavior: {feedback.behavior_rating}/5</span>
+                        </div>
                       </div>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {Number(student.total_score).toFixed(1)}
-                      </span>
+                      <p className="text-sm text-gray-600">{feedback.feedback}</p>
+                      {feedback.recommendations && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          <span className="font-medium">Recommendations:</span> {feedback.recommendations}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">{new Date(feedback.feedback_date).toLocaleDateString()}</p>
                     </div>
                   ))}
-                  {topLeaderboard.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">No leaderboard data</p>
+                  {facultyFeedback.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">No faculty feedback yet</p>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Leaderboard */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Trophy className="text-yellow-500" size={20} />
+                Top Performers
+              </h3>
+              <div className="space-y-2">
+                {topLeaderboard.map((student: any, index: number) => (
+                  <div 
+                    key={index} 
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      student.student_id === currentUser?.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`font-bold ${index < 3 ? 'text-yellow-600' : 'text-gray-600'}`}>
+                        #{student.rank}
+                      </span>
+                      <p className="font-medium text-gray-900">{student.student_name}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {Number(student.total_score).toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+                {topLeaderboard.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">No leaderboard data</p>
+                )}
               </div>
             </div>
           </>
@@ -273,6 +331,122 @@ const [activeTab, setActiveTab] = useState('dashboard');
 
         {activeTab === 'attendance' && <AttendanceView />}
         {activeTab === 'tracker-edit' && <TrackerModification />}
+
+        {activeTab === 'projects' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">My Projects</h3>
+              
+              {projects.length === 0 ? (
+                <div className="text-center py-12">
+                  <FolderKanban className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">No projects assigned yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Your facilitator will assign projects soon</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {projects.map((project: any) => (
+                    <div key={project.id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 mb-1">{project.title}</h4>
+                          {project.team_name && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              Team: <span className="font-medium text-blue-600">{project.team_name}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          {project.type && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                              {project.type}
+                            </span>
+                          )}
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            project.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                            project.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' :
+                            project.status === 'SUBMITTED' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {project.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {project.description && (
+                        <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                      )}
+
+                      <div className="space-y-2 text-sm text-gray-600 mb-4">
+                        {project.start_date && (
+                          <p>Start: {new Date(project.start_date).toLocaleDateString()}</p>
+                        )}
+                        {project.end_date && (
+                          <p>Due: {new Date(project.end_date).toLocaleDateString()}</p>
+                        )}
+                      </div>
+
+                      {/* Submission Status */}
+                      {project.submission_id ? (
+                        <div className="border-t border-gray-200 pt-3 mt-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Submission Status:</span>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              project.submission_status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                              project.submission_status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                              project.submission_status === 'NEEDS_REVISION' ? 'bg-orange-100 text-orange-700' :
+                              project.submission_status === 'UNDER_REVIEW' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {project.submission_status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          
+                          {project.submitted_at && (
+                            <p className="text-xs text-gray-500 mb-2">
+                              Submitted: {new Date(project.submitted_at).toLocaleString()}
+                            </p>
+                          )}
+
+                          {project.grade !== null && project.grade !== undefined && (
+                            <div className="mb-2">
+                              <span className="text-sm font-medium text-gray-700">Grade: </span>
+                              <span className="text-lg font-bold text-blue-600">{project.grade}/100</span>
+                            </div>
+                          )}
+
+                          {project.feedback && (
+                            <div className="mt-2 p-3 bg-gray-50 rounded">
+                              <p className="text-xs font-medium text-gray-700 mb-1">Facilitator Feedback:</p>
+                              <p className="text-sm text-gray-600">{project.feedback}</p>
+                            </div>
+                          )}
+
+                          {project.reviewed_at && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Reviewed: {new Date(project.reviewed_at).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            // TODO: Implement submission upload
+                            alert('Submission feature coming soon! You will be able to upload your project files here.');
+                          }}
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-2 text-sm font-medium"
+                        >
+                          <Upload size={16} />
+                          Submit Project
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       </main>
 

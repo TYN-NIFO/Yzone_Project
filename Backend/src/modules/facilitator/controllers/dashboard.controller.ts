@@ -40,8 +40,8 @@ export class FacilitatorDashboardController {
       const students = await pool.query(
         `SELECT u.id, u.name, u.email, c.name as cohort_name,
           (SELECT COUNT(*) FROM tracker_entries WHERE student_id = u.id AND entry_date >= CURRENT_DATE - INTERVAL '7 days') as recent_trackers,
-          (SELECT total_score FROM leaderboard WHERE student_id = u.id) as score,
-          (SELECT rank FROM leaderboard WHERE student_id = u.id) as rank
+          (SELECT total_score FROM leaderboard WHERE student_id = u.id LIMIT 1) as score,
+          (SELECT rank FROM leaderboard WHERE student_id = u.id LIMIT 1) as rank
          FROM users u
          JOIN cohorts c ON u.cohort_id = c.id
          WHERE u.cohort_id = ANY($1) AND u.role = 'student' AND u.deleted_at IS NULL
@@ -56,7 +56,7 @@ export class FacilitatorDashboardController {
             THEN 'submitted' 
             ELSE 'pending' 
           END as status,
-          (SELECT submitted_at FROM tracker_entries WHERE student_id = u.id AND entry_date = CURRENT_DATE) as submitted_at
+          (SELECT submitted_at FROM tracker_entries WHERE student_id = u.id AND entry_date = CURRENT_DATE LIMIT 1) as submitted_at
          FROM users u
          WHERE u.cohort_id = ANY($1) AND u.role = 'student' AND u.deleted_at IS NULL
          ORDER BY status, u.name`,

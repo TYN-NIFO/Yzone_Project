@@ -18,6 +18,7 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
     company: '',
     designation: '',
     expertise: '',
+    auto_assign_students: true, // Auto-assign by default
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -227,6 +228,26 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., Full Stack Development, Cloud Architecture, Data Science..."
             />
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.auto_assign_students}
+                onChange={(e) => setFormData({ ...formData, auto_assign_students: e.target.checked })}
+                className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-900">
+                  Auto-assign to all students in cohort
+                </span>
+                <p className="text-xs text-gray-600 mt-1">
+                  Automatically assign this mentor to all students in the selected cohort. 
+                  You can modify assignments later through team management.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="flex gap-3 pt-4">

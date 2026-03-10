@@ -28,10 +28,25 @@ export default function FacultyDashboard() {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const data = await dashboardService.getFacultyDashboard();
-      setDashboardData(data);
-    } catch (error) {
-      console.error('Failed to load dashboard:', error);
+      console.log('🔄 Loading faculty dashboard...');
+      const response = await dashboardService.getFacultyDashboard();
+      console.log('✅ Faculty dashboard response:', response);
+      
+      if (response) {
+        setDashboardData(response);
+        console.log('✅ Faculty dashboard data set:', response);
+      } else {
+        console.error('❌ Invalid response structure:', response);
+        setDashboardData({});
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to load dashboard:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        stack: error.stack
+      });
+      setDashboardData({});
     } finally {
       setLoading(false);
     }

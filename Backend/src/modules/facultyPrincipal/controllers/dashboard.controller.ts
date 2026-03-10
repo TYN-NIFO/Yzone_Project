@@ -27,7 +27,8 @@ export class FacultyDashboardController {
           COUNT(DISTINCT a.student_id) as total_marked,
           ROUND((COUNT(DISTINCT a.student_id) FILTER (WHERE a.is_present = true)::numeric / NULLIF(COUNT(DISTINCT a.student_id), 0)) * 100, 2) as attendance_percentage
          FROM cohorts c
-         LEFT JOIN attendance a ON c.id = a.cohort_id
+         LEFT JOIN sessions s ON c.id = s.cohort_id
+         LEFT JOIN attendance a ON s.id = a.session_id
          WHERE c.tenant_id = $1 AND c.deleted_at IS NULL
          GROUP BY c.id, c.name
          ORDER BY c.name`,
@@ -35,11 +36,14 @@ export class FacultyDashboardController {
       );
 
       const studentProgress = await pool.query(
-        `SELECT u.name, u.email, c.name as cohort_name,
+        `SELECT u.id, u.name, u.email, c.name as cohort_name,
           (SELECT COUNT(*) FROM tracker_entries WHERE student_id = u.id) as total_trackers,
-          (SELECT total_score FROM leaderboard WHERE student_id = u.id) as score,
-          (SELECT rank FROM leaderboard WHERE student_id = u.id) as rank,
-          (SELECT COUNT(*) FILTER (WHERE is_present = true) FROM attendance WHERE student_id = u.id) as attendance_count
+          (SELECT total_score FROM leaderboard WHERE student_id = u.id AND cohort_id = u.cohort_id LIMIT 1) as score,
+          (SELECT rank FROM leaderboard WHERE student_id = u.id AND cohort_id = u.cohort_id LIMIT 1) as rank,
+          (SELECT COUNT(*) FILTER (WHERE a.is_present = true) 
+           FROM attendance a 
+           JOIN sessions s ON a.session_id = s.id 
+           WHERE a.student_id = u.id) as attendance_count
          FROM users u
          JOIN cohorts c ON u.cohort_id = c.id
          WHERE u.tenant_id = $1 AND u.role = 'student' AND u.deleted_at IS NULL

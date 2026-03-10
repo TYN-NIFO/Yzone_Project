@@ -26,10 +26,30 @@ export default function MentorDashboard() {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const data = await dashboardService.getMentorDashboard();
-      setDashboardData(data);
-    } catch (error) {
-      console.error('Failed to load dashboard:', error);
+      console.log('🔄 Loading mentor dashboard...');
+      const response = await dashboardService.getMentorDashboard();
+      console.log('✅ Dashboard response:', response);
+      console.log('✅ Response type:', typeof response);
+      console.log('✅ Response keys:', response ? Object.keys(response) : 'null');
+      
+      // The response from dashboardService.getMentorDashboard() is already the data object
+      // It returns response.data from the API, which is { stats, students }
+      if (response) {
+        setDashboardData(response);
+        console.log('✅ Dashboard data set:', response);
+      } else {
+        console.error('❌ Invalid response structure:', response);
+        setDashboardData({ stats: {}, students: [] });
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to load dashboard:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        stack: error.stack
+      });
+      // Set empty data on error so UI doesn't break
+      setDashboardData({ stats: {}, students: [] });
     } finally {
       setLoading(false);
     }
@@ -113,44 +133,55 @@ export default function MentorDashboard() {
         {/* Assigned Students */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Assigned Students</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recent Trackers</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {students.map((student: any, index: number) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.cohort_name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.recent_trackers || 0}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.score ? Number(student.score).toFixed(1) : 'N/A'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
-                    <td className="px-4 py-3">
-                      <button 
-                        onClick={() => handleReview(student)}
-                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
-                      >
-                        <MessageSquare size={16} />
-                        Review
-                      </button>
-                    </td>
+          
+          {students.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">No students assigned yet</p>
+              <p className="text-sm text-gray-500">
+                Contact your facilitator to assign students to your mentorship
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recent Trackers</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {students.map((student: any, index: number) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{student.cohort_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{student.recent_trackers || 0}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {student.score ? Number(student.score).toFixed(1) : 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
+                      <td className="px-4 py-3">
+                        <button 
+                          onClick={() => handleReview(student)}
+                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                        >
+                          <MessageSquare size={16} />
+                          Review
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
 

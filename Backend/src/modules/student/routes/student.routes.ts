@@ -26,22 +26,24 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// STUDENT
-router.post("/register", StudentController.register);
-router.patch("/update/:id", StudentController.update);
-router.get("/:id", StudentController.getById);
-router.get("/", StudentController.getAll);
-
-// TRACKER
+// TRACKER - Must come before /:id routes
 router.post("/tracker", roleMiddleware(["student"]), upload.single("file"), (req, res) => dashboardController.submitTracker(req, res));
 router.get("/tracker/today", roleMiddleware(["student"]), (req, res) => dashboardController.getTodayTracker(req, res));
+router.get("/tracker/history", roleMiddleware(["student"]), (req, res) => dashboardController.getTrackerHistory(req, res));
 router.put("/tracker/:id/update", roleMiddleware(["student"]), (req, res) => dashboardController.updateTodayTracker(req, res));
+
+// Attendance Stats - Must come before /:id routes
+router.get("/attendance/stats", roleMiddleware(["student"]), (req, res) => dashboardController.getAttendanceStats(req, res));
+router.get("/attendance/history", roleMiddleware(["student"]), (req, res) => dashboardController.getAttendanceHistory(req, res));
+router.get("/upcoming-sessions", roleMiddleware(["student"]), (req, res) => dashboardController.getUpcomingSessions(req, res));
+
+// STUDENT - Generic routes with :id parameter (must come after specific routes)
+router.post("/register", StudentController.register);
+router.patch("/update/:id", StudentController.update);
+router.get("/", StudentController.getAll);
 router.patch("/tracker/:id", StudentController.updateTracker);
 router.get("/:id/tracker", StudentController.getTrackers);
-
-// Attendance Stats
-router.get("/attendance/stats", roleMiddleware(["student"]), (req, res) => dashboardController.getAttendanceStats(req, res));
-router.get("/upcoming-sessions", roleMiddleware(["student"]), (req, res) => dashboardController.getUpcomingSessions(req, res));
+router.get("/:id", StudentController.getById);
 
 // SUBMISSION
 router.post("/submit", upload.single("file"), StudentController.submitProject);

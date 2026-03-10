@@ -92,10 +92,16 @@ export class MentorController {
     try {
       const students = await mentorService.getAssignedStudents(req.user!.id, req.user!.tenantId);
       
+      // Calculate average score from students who have scores
+      const studentsWithScores = students.filter((s: any) => s.score !== null && s.score !== undefined);
+      const avgScore = studentsWithScores.length > 0
+        ? studentsWithScores.reduce((sum: number, s: any) => sum + parseFloat(s.score || 0), 0) / studentsWithScores.length
+        : 0;
+
       const stats = {
         totalStudents: students.length,
         activeStudents: students.filter((s: any) => s.recent_trackers > 0).length,
-        avgScore: students.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / students.length || 0,
+        avgScore: avgScore,
       };
 
       res.status(200).json({ success: true, data: { stats, students } });

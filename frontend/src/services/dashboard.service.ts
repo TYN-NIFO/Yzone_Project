@@ -52,7 +52,9 @@ class DashboardService {
 
   // Mentor Dashboard
   async getMentorDashboard() {
+    console.log('📡 Calling mentor dashboard API:', API_ENDPOINTS.MENTOR_DASHBOARD);
     const response = await apiService.get(API_ENDPOINTS.MENTOR_DASHBOARD);
+    console.log('📡 Mentor dashboard API response:', response);
     return response.data;
   }
 

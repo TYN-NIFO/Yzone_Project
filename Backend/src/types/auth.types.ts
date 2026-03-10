@@ -3,6 +3,8 @@ export interface JwtPayload {
   role: UserRole;
   tenantId: string;
   cohortId?: string;
+  name: string;
+  email: string;
 }
 
 export interface LoginRequest {
