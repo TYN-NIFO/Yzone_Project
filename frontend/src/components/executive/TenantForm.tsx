@@ -30,7 +30,7 @@ const [mouFile, setMouFile] = useState<File | null>(null);
     try {
       const token = localStorage.getItem('token');
 // First create the tenant
-      const tenantResponse = await fetch('http://localhost:5000/api/executive/tenants', {
+      const tenantResponse = await fetch('/api/executive/tenants', {
 
         method: 'POST',
         headers: {
@@ -57,7 +57,7 @@ const tenantData = await tenantResponse.json();
           mouFormData.append('description', mouDescription);
         }
 
-        const mouResponse = await fetch('http://localhost:5000/api/executive/mou/upload', {
+        const mouResponse = await fetch('/api/executive/mou/upload', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

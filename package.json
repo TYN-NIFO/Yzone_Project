@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Chandru-R123/Yzone_Project#readme",
   "description": "",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "express": "^5.2.1"
   },
   "devDependencies": {

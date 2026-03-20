@@ -13,7 +13,8 @@ import {
   LayoutDashboard,
   UserPlus,
   UsersRound,
-  Calendar
+  Calendar,
+  MessageCircle
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
@@ -38,6 +39,8 @@ export default function FacilitatorDashboard() {
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [showMentorForm, setShowMentorForm] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [editingMentor, setEditingMentor] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [students, setStudents] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -45,9 +48,14 @@ export default function FacilitatorDashboard() {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showSubmissionManagement, setShowSubmissionManagement] = useState(false);
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderResult, setReminderResult] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboard();
+  }, []);
+
+  useEffect(() => {
     if (activeTab === 'students') {
       loadStudents();
     } else if (activeTab === 'teams') {
@@ -57,7 +65,7 @@ export default function FacilitatorDashboard() {
     } else if (activeTab === 'projects') {
       loadProjects();
     }
-  }, [activeTab]);
+  }, [activeTab, dashboardData]);
 
 
   const loadDashboard = async () => {
@@ -78,7 +86,7 @@ export default function FacilitatorDashboard() {
       const cohortId = dashboardData?.cohorts?.[0]?.id;
       if (!cohortId) return;
 
-      const response = await fetch(`http://localhost:5000/api/facilitator/students/${cohortId}`, {
+      const response = await fetch(`/api/facilitator/students/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const result = await response.json();
@@ -96,7 +104,7 @@ export default function FacilitatorDashboard() {
       const cohortId = dashboardData?.cohorts?.[0]?.id;
       if (!cohortId) return;
 
-      const response = await fetch(`http://localhost:5000/api/facilitator/teams/${cohortId}`, {
+      const response = await fetch(`/api/facilitator/teams/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const result = await response.json();
@@ -111,7 +119,7 @@ export default function FacilitatorDashboard() {
   const loadMentors = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/mentors', {
+      const response = await fetch('/api/facilitator/mentors', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const result = await response.json();
@@ -144,6 +152,24 @@ export default function FacilitatorDashboard() {
   const handleViewSubmissions = (project: any) => {
     setSelectedProject(project);
     setShowSubmissionManagement(true);
+  };
+
+  const handleSendTrackerReminders = async () => {
+    try {
+      setSendingReminders(true);
+      setReminderResult(null);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/facilitator/send-tracker-reminders', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      const result = await response.json();
+      setReminderResult(result.message || 'Done');
+    } catch (error) {
+      setReminderResult('Failed to send reminders. Please try again.');
+    } finally {
+      setSendingReminders(false);
+    }
   };
 
 
@@ -208,6 +234,14 @@ export default function FacilitatorDashboard() {
               )}
               {activeTab === 'dashboard' && (
                 <>
+                  <button
+                    onClick={handleSendTrackerReminders}
+                    disabled={sendingReminders}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 disabled:opacity-60"
+                  >
+                    <MessageCircle size={18} />
+                    {sendingReminders ? 'Sending...' : 'Send Tracker Reminders'}
+                  </button>
                   <button
                     onClick={() => setShowAttendanceForm(true)}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
@@ -311,6 +345,13 @@ export default function FacilitatorDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Reminder Result Banner */}
+        {reminderResult && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+            <span className="text-green-800 text-sm">{reminderResult}</span>
+            <button onClick={() => setReminderResult(null)} className="text-green-600 hover:text-green-800 text-lg leading-none">&times;</button>
+          </div>
+        )}
         {activeTab === 'dashboard' && (
           <>
             {/* Assigned Cohorts */}
@@ -449,6 +490,7 @@ export default function FacilitatorDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -458,9 +500,15 @@ export default function FacilitatorDashboard() {
                       <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{student.phone || '-'}</td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                          Active
-                        </span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => { setEditingStudent(student); setShowStudentForm(true); }}
+                          className="px-3 py-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100"
+                        >
+                          Edit
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -545,6 +593,7 @@ export default function FacilitatorDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -554,9 +603,15 @@ export default function FacilitatorDashboard() {
                       <td className="px-4 py-3 text-sm text-gray-600">{mentor.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{mentor.phone || '-'}</td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                          Active
-                        </span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => { setEditingMentor(mentor); setShowMentorForm(true); }}
+                          className="px-3 py-1 text-xs bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100"
+                        >
+                          Edit
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -685,20 +740,16 @@ onSuccess={() => {
       )}
 {showStudentForm && (
         <StudentForm
-          onClose={() => setShowStudentForm(false)}
-          onSuccess={() => {
-            loadDashboard();
-            loadStudents();
-          }}
+          student={editingStudent}
+          onClose={() => { setShowStudentForm(false); setEditingStudent(null); }}
+          onSuccess={() => { loadDashboard(); loadStudents(); }}
         />
       )}
       {showMentorForm && (
         <MentorForm
-          onClose={() => setShowMentorForm(false)}
-          onSuccess={() => {
-            loadDashboard();
-            loadMentors();
-          }}
+          mentor={editingMentor}
+          onClose={() => { setShowMentorForm(false); setEditingMentor(null); }}
+          onSuccess={() => { loadDashboard(); loadMentors(); }}
         />
       )}
 

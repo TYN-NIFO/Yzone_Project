@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import PhoneInput from '../common/PhoneInput';
 
 interface MentorFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  mentor?: any; // if provided → edit mode
 }
 
-export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
+export default function MentorForm({ onClose, onSuccess, mentor }: MentorFormProps) {
+  const isEdit = !!mentor;
   const [cohorts, setCohorts] = useState<any[]>([]);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    name: mentor?.name || '',
+    email: mentor?.email || '',
     password: '',
-    phone: '',
-    whatsapp_number: '',
-    cohort_id: '',
-    company: '',
-    designation: '',
-    expertise: '',
-    auto_assign_students: true, // Auto-assign by default
+    phone: mentor?.phone || '',
+    whatsapp_number: mentor?.whatsapp_number || '',
+    cohort_id: mentor?.cohort_id || '',
+    company: mentor?.company || '',
+    designation: mentor?.designation || '',
+    expertise: mentor?.expertise || '',
+    auto_assign_students: true,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,10 +33,8 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
   const fetchCohorts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/cohorts', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch('/api/facilitator/cohorts', {
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
       if (data.success && data.data) {
@@ -51,16 +52,15 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/mentors', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          role: 'industryMentor',
-        }),
+      const url = isEdit ? `/api/facilitator/mentors/${mentor.id}` : '/api/facilitator/mentors';
+      const method = isEdit ? 'PUT' : 'POST';
+      const body: any = { ...formData, role: 'industryMentor' };
+      if (isEdit && !body.password) delete body.password;
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -69,7 +69,7 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
         onSuccess();
         onClose();
       } else {
-        setError(data.error || data.message || 'Failed to create mentor');
+        setError(data.error || data.message || `Failed to ${isEdit ? 'update' : 'create'} mentor`);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create mentor');
@@ -82,7 +82,7 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900">Create New Mentor</h2>
+          <h2 className="text-xl font-bold text-gray-900">{isEdit ? 'Edit Mentor' : 'Create New Mentor'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={24} />
           </button>
@@ -162,31 +162,16 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="+91 1234567890"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                WhatsApp Number
-              </label>
-              <input
-                type="tel"
-                value={formData.whatsapp_number}
-                onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="+91 1234567890"
-              />
-            </div>
+            <PhoneInput
+              label="Phone Number"
+              value={formData.phone}
+              onChange={(val) => setFormData({ ...formData, phone: val })}
+            />
+            <PhoneInput
+              label="WhatsApp Number"
+              value={formData.whatsapp_number}
+              onChange={(val) => setFormData({ ...formData, whatsapp_number: val })}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -263,7 +248,7 @@ export default function MentorForm({ onClose, onSuccess }: MentorFormProps) {
               disabled={loading}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Create Mentor'}
+              {loading ? (isEdit ? 'Saving...' : 'Creating...') : (isEdit ? 'Save Changes' : 'Create Mentor')}
             </button>
           </div>
         </form>

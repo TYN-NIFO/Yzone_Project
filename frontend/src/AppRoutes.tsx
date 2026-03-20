@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 
 // Pages
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 // Student
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -43,6 +44,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/" element={<Navigate to={defaultRoute} replace />} />
 
       {/* Student Routes */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, 
@@ -7,13 +7,13 @@ import {
   Trophy,
   Calendar,
   LogOut,
-Plus,
+  Plus,
   LayoutDashboard,
   CheckCircle,
   Edit3,
   FolderKanban,
-  Upload
-
+  Upload,
+  X
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
@@ -28,7 +28,20 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [showTrackerForm, setShowTrackerForm] = useState(false);
-const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
 
   useEffect(() => {
@@ -105,6 +118,72 @@ const [activeTab, setActiveTab] = useState('dashboard');
                 <Plus size={18} />
                 Submit Tracker
               </button>
+
+              {/* Notification Bell */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell size={20} className="text-gray-600" />
+                  {notifications.filter((n: any) => !n.is_read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                      {notifications.filter((n: any) => !n.is_read).length > 9 ? '9+' : notifications.filter((n: any) => !n.is_read).length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown Panel */}
+                {showNotifications && (
+                  <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <Bell size={16} className="text-blue-600" />
+                        <span className="font-semibold text-gray-900 text-sm">Notifications</span>
+                        {notifications.filter((n: any) => !n.is_read).length > 0 && (
+                          <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-medium">
+                            {notifications.filter((n: any) => !n.is_read).length} new
+                          </span>
+                        )}
+                      </div>
+                      <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600">
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="py-10 text-center">
+                          <Bell size={28} className="text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">No notifications yet</p>
+                        </div>
+                      ) : (
+                        notifications.map((notif: any, index: number) => (
+                          <div
+                            key={index}
+                            className={`px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors ${
+                              !notif.is_read ? 'bg-blue-50/60' : ''
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${!notif.is_read ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">{notif.title}</p>
+                                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{notif.message}</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {new Date(notif.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -199,9 +278,9 @@ const [activeTab, setActiveTab] = useState('dashboard');
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
               {/* Recent Trackers */}
-              <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Tracker Submissions</h3>
                 <div className="space-y-3">
                   {recentTrackers.slice(0, 7).map((tracker: any, index: number) => (
@@ -218,26 +297,6 @@ const [activeTab, setActiveTab] = useState('dashboard');
                   ))}
                   {recentTrackers.length === 0 && (
                     <p className="text-center text-gray-500 py-8">No tracker submissions yet</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Notifications */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Bell className="text-blue-600" size={20} />
-                  Notifications
-                </h3>
-                <div className="space-y-3">
-                  {notifications.slice(0, 5).map((notif: any, index: number) => (
-                    <div key={index} className={`p-3 rounded-lg ${notif.is_read ? 'bg-gray-50' : 'bg-blue-50'}`}>
-                      <p className="text-sm font-medium text-gray-900">{notif.title}</p>
-                      <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{new Date(notif.created_at).toLocaleDateString()}</p>
-                    </div>
-                  ))}
-                  {notifications.length === 0 && (
-                    <p className="text-center text-gray-500 py-4 text-sm">No notifications</p>
                   )}
                 </div>
               </div>

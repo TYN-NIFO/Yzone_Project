@@ -34,7 +34,7 @@ facilitatorRoutes.get("/students/:cohortId", roleMiddleware(["facilitator"]), as
   try {
     const { cohortId } = req.params;
     const result = await pool.query(
-      "SELECT id, name, email FROM users WHERE cohort_id = $1 AND role = 'student' AND deleted_at IS NULL",
+      "SELECT id, name, email, phone, whatsapp_number FROM users WHERE cohort_id = $1 AND role = 'student' AND deleted_at IS NULL",
       [cohortId]
     );
     res.json({ success: true, data: result.rows });
@@ -135,9 +135,9 @@ facilitatorRoutes.post("/teams", TeamsController.create);
 facilitatorRoutes.get("/teams/:cohortId", TeamsController.getByCohort);
 
 // Projects
-facilitatorRoutes.post("/projects", ProjectsController.createProject);
-facilitatorRoutes.get("/projects/cohort/:cohortId", ProjectsController.getProjectsByCohort);
-facilitatorRoutes.get("/projects/team/:teamId", ProjectsController.getProjectsByTeam);
+facilitatorRoutes.post("/projects", ProjectsController.createProject as any);
+facilitatorRoutes.get("/projects/cohort/:cohortId", ProjectsController.getProjectsByCohort as any);
+facilitatorRoutes.get("/projects/team/:teamId", ProjectsController.getProjectsByTeam as any);
 
 // Submission Management Routes
 facilitatorRoutes.get("/projects/:projectId/submissions", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
@@ -412,6 +412,123 @@ facilitatorRoutes.post("/mentors", roleMiddleware(["facilitator"]), async (req: 
     } else {
       res.status(500).json({ error: 'Failed to create mentor' });
     }
+  }
+});
+
+// Update Student
+facilitatorRoutes.put("/students/:studentId", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.user!;
+    const { studentId } = req.params;
+    const { name, email, password, phone, whatsapp_number, cohort_id } = req.body;
+
+    const bcrypt = require('bcryptjs');
+    let updateQuery = `UPDATE users SET name=$1, email=$2, phone=$3, whatsapp_number=$4, cohort_id=$5, updated_at=NOW()`;
+    const params: any[] = [name, email, phone || null, whatsapp_number || null, cohort_id];
+
+    if (password) {
+      const hash = await bcrypt.hash(password, 10);
+      updateQuery += `, password_hash=$${params.length + 1}`;
+      params.push(hash);
+    }
+
+    updateQuery += ` WHERE id=$${params.length + 1} AND tenant_id=$${params.length + 2} AND role='student' RETURNING id, name, email, phone, whatsapp_number, cohort_id`;
+    params.push(studentId, tenantId);
+
+    const result = await pool.query(updateQuery, params);
+    if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    res.json({ success: true, message: 'Student updated successfully', student: result.rows[0] });
+  } catch (error: any) {
+    console.error('Error updating student:', error);
+    res.status(500).json({ error: 'Failed to update student' });
+  }
+});
+
+// Update Mentor
+facilitatorRoutes.put("/mentors/:mentorId", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.user!;
+    const { mentorId } = req.params;
+    const { name, email, password, phone, whatsapp_number, cohort_id } = req.body;
+
+    const bcrypt = require('bcryptjs');
+    let updateQuery = `UPDATE users SET name=$1, email=$2, phone=$3, whatsapp_number=$4, cohort_id=$5, updated_at=NOW()`;
+    const params: any[] = [name, email, phone || null, whatsapp_number || null, cohort_id];
+
+    if (password) {
+      const hash = await bcrypt.hash(password, 10);
+      updateQuery += `, password_hash=$${params.length + 1}`;
+      params.push(hash);
+    }
+
+    updateQuery += ` WHERE id=$${params.length + 1} AND tenant_id=$${params.length + 2} AND role='industryMentor' RETURNING id, name, email, phone, whatsapp_number, cohort_id`;
+    params.push(mentorId, tenantId);
+
+    const result = await pool.query(updateQuery, params);
+    if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Mentor not found' });
+
+    res.json({ success: true, message: 'Mentor updated successfully', mentor: result.rows[0] });
+  } catch (error: any) {
+    console.error('Error updating mentor:', error);
+    res.status(500).json({ error: 'Failed to update mentor' });
+  }
+});
+
+// Send WhatsApp Tracker Reminders manually
+facilitatorRoutes.post("/send-tracker-reminders", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.user!;
+    const { TwilioWhatsAppService } = await import("../../../services/twilio-whatsapp.service");
+
+    // Get all students in this facilitator's cohorts who haven't submitted today's tracker
+    const studentsResult = await pool.query(
+      `SELECT u.id, u.name, u.whatsapp_number
+       FROM users u
+       JOIN cohorts c ON u.cohort_id = c.id
+       WHERE u.role = 'student'
+         AND u.is_active = true
+         AND u.deleted_at IS NULL
+         AND u.whatsapp_number IS NOT NULL
+         AND c.tenant_id = $1
+         AND NOT EXISTS (
+           SELECT 1 FROM tracker_entries te
+           WHERE te.student_id = u.id AND te.entry_date = CURRENT_DATE
+         )`,
+      [tenantId]
+    );
+
+    const students = studentsResult.rows;
+
+    if (students.length === 0) {
+      return res.json({ success: true, message: "All students have already submitted today's tracker.", sent: 0, failed: 0 });
+    }
+
+    let sent = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (const student of students) {
+      const result = await TwilioWhatsAppService.sendTrackerReminder(student.name, student.whatsapp_number);
+      if (result.success) {
+        sent++;
+      } else {
+        failed++;
+        errors.push(`${student.name}: ${result.error}`);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Reminders sent: ${sent} successful, ${failed} failed out of ${students.length} students.`,
+      sent,
+      failed,
+      total: students.length,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error: any) {
+    console.error("Error sending tracker reminders:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
