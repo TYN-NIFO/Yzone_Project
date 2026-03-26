@@ -7,7 +7,8 @@ import {
   Activity,
   UserCheck,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  CheckCircle
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
@@ -203,13 +204,20 @@ export default function FacultyDashboard() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
                     <td className="px-4 py-3">
-                      <button 
-                        onClick={() => handleFeedback(student)}
-                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
-                      >
-                        <MessageSquare size={16} />
-                        Feedback
-                      </button>
+                      {student.reviewed_today ? (
+                        <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                          <CheckCircle size={16} />
+                          Reviewed Today
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => handleFeedback(student)}
+                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                        >
+                          <MessageSquare size={16} />
+                          Feedback
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

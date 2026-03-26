@@ -5,10 +5,10 @@ export class ProjectsRepo {
   async createProject(data: Project) {
     const { cohortId, teamId, tenantId, type, title, description, startDate, endDate, status } = data;
     const result = await pool.query(
-      `INSERT INTO projects (id, cohort_id, team_id, tenant_id, type, title, description, start_date, end_date, status, created_at)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP) 
+      `INSERT INTO projects (cohort_id, team_id, tenant_id, type, name, title, description, start_date, end_date, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP) 
        RETURNING *`,
-      [cohortId, teamId || null, tenantId, type, title, description || null, startDate || null, endDate || null, status || "PENDING"]
+      [cohortId, teamId || null, tenantId, type || null, title, title, description || null, startDate || null, endDate || null, status || "PENDING"]
     );
     return result.rows[0];
   }

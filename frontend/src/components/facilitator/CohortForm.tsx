@@ -25,8 +25,8 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
 
   const loadTenants = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/tenants', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/tenants', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -42,8 +42,8 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/cohorts', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/cohorts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

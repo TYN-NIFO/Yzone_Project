@@ -26,7 +26,7 @@ export default function StudentForm({ onClose, onSuccess, student }: StudentForm
 
   const fetchCohorts = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/facilitator/cohorts', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -43,7 +43,7 @@ export default function StudentForm({ onClose, onSuccess, student }: StudentForm
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const url = isEdit
         ? `/api/facilitator/students/${student.id}`
         : '/api/facilitator/students';

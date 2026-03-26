@@ -31,7 +31,7 @@ export const AttendanceView: React.FC = () => {
     try {
       const response = await fetch('/api/student/attendance/stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       const data = await response.json();
@@ -47,7 +47,7 @@ export const AttendanceView: React.FC = () => {
     try {
       const response = await fetch('/api/student/upcoming-sessions', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       const data = await response.json();

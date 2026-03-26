@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {
+      // Clear old user first to avoid stale state
+      setCurrentUser(null);
       const response: AuthResponse = await authService.login(credentials);
       setCurrentUser(response.user);
     } catch (error: any) {

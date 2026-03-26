@@ -91,7 +91,7 @@ export default function StudentTrackerHistory() {
     const loadTrackerHistory = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await fetch('/api/student/tracker-history?limit=90', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });

@@ -38,7 +38,7 @@ export class TeamsController {
               `INSERT INTO mentor_assignments (mentor_id, student_id, tenant_id, cohort_id, team_id, is_active)
                VALUES ($1, $2, $3, $4, $5, true)
                ON CONFLICT (mentor_id, student_id, cohort_id) 
-               DO UPDATE SET team_id = $5, is_active = true, updated_at = CURRENT_TIMESTAMP`,
+               DO UPDATE SET team_id = EXCLUDED.team_id, is_active = true, updated_at = CURRENT_TIMESTAMP`,
               [mentorId, studentId, tenantId, cohortId, team.id]
             );
           }

@@ -37,8 +37,8 @@ loadMentors();
 
   const loadCohorts = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/cohorts', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/cohorts', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -50,8 +50,8 @@ loadMentors();
 
   const loadStudents = async (cohortId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/facilitator/students/${cohortId}`, {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`/api/facilitator/students/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -63,8 +63,8 @@ loadMentors();
 
 const loadMentors = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/mentors', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/mentors', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -89,8 +89,8 @@ const loadMentors = async () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/teams', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/teams', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

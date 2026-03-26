@@ -32,7 +32,7 @@ export default function FeedbackForm({ student, onClose, onSuccess }: FeedbackFo
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       if (!token) {
         setError('No authentication token found. Please login again.');

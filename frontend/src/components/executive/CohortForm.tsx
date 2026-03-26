@@ -26,7 +26,7 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
 
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       const [tenantsRes, usersRes] = await Promise.all([
         fetch('/api/executive/tenants', {
@@ -53,7 +53,7 @@ export default function CohortForm({ onClose, onSuccess }: CohortFormProps) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/executive/cohorts', {
         method: 'POST',
         headers: {

@@ -55,10 +55,10 @@ export const createSession = async (req: AuthRequest, res: Response) => {
 
     // Create session
     const result = await pool.query(
-      `INSERT INTO sessions (id, cohort_id, title, session_date)
-       VALUES (gen_random_uuid(), $1, $2, $3)
+      `INSERT INTO sessions (cohort_id, tenant_id, facilitator_id, title, session_date, session_time, topic, description)
+       VALUES ($1, $2, $3, $4, $5, '00:00', $4, $6)
        RETURNING *`,
-      [cohortId, title, sessionDate]
+      [cohortId, tenantId, facilitatorId, title, sessionDate, description || null]
     );
 
     res.status(201).json({ 

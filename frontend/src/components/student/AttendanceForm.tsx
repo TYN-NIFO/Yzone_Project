@@ -20,7 +20,7 @@ export default function AttendanceForm({ onClose, onSuccess }: AttendanceFormPro
 
   const loadTodaySessions = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/student/today-sessions', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -63,7 +63,7 @@ export default function AttendanceForm({ onClose, onSuccess }: AttendanceFormPro
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/student/attendance', {
         method: 'POST',
         headers: {

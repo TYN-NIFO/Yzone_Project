@@ -34,8 +34,8 @@ export default function ProjectForm({ onClose, onSuccess }: ProjectFormProps) {
 
   const loadCohorts = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/cohorts', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/cohorts', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -47,8 +47,8 @@ export default function ProjectForm({ onClose, onSuccess }: ProjectFormProps) {
 
   const loadTeams = async (cohortId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/facilitator/teams/${cohortId}`, {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`/api/facilitator/teams/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -64,8 +64,8 @@ export default function ProjectForm({ onClose, onSuccess }: ProjectFormProps) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/projects', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

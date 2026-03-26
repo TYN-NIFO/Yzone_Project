@@ -43,13 +43,18 @@ export class FacultyDashboardController {
           (SELECT COUNT(*) FILTER (WHERE a.is_present = true) 
            FROM attendance a 
            JOIN sessions s ON a.session_id = s.id 
-           WHERE a.student_id = u.id) as attendance_count
+           WHERE a.student_id = u.id) as attendance_count,
+          EXISTS (
+            SELECT 1 FROM faculty_feedback ff
+            WHERE ff.faculty_id = $2 AND ff.student_id = u.id
+            AND ff.feedback_date = CURRENT_DATE
+          ) as reviewed_today
          FROM users u
          JOIN cohorts c ON u.cohort_id = c.id
          WHERE u.tenant_id = $1 AND u.role = 'student' AND u.deleted_at IS NULL
          ORDER BY score DESC NULLS LAST
          LIMIT 20`,
-        [tenantId]
+        [tenantId, req.user!.id]
       );
 
       const cohortOverview = await pool.query(

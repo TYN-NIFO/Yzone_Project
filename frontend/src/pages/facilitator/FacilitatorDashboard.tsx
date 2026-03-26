@@ -82,7 +82,7 @@ export default function FacilitatorDashboard() {
 
   const loadStudents = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const cohortId = dashboardData?.cohorts?.[0]?.id;
       if (!cohortId) return;
 
@@ -100,7 +100,7 @@ export default function FacilitatorDashboard() {
 
   const loadTeams = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const cohortId = dashboardData?.cohorts?.[0]?.id;
       if (!cohortId) return;
 
@@ -118,7 +118,7 @@ export default function FacilitatorDashboard() {
 
   const loadMentors = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/facilitator/mentors', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -133,7 +133,7 @@ export default function FacilitatorDashboard() {
 
   const loadProjects = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const cohortId = dashboardData?.cohorts?.[0]?.id;
       if (!cohortId) return;
 
@@ -158,7 +158,7 @@ export default function FacilitatorDashboard() {
     try {
       setSendingReminders(true);
       setReminderResult(null);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/facilitator/send-tracker-reminders', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },

@@ -107,14 +107,16 @@ facilitatorRoutes.post("/mark-attendance", roleMiddleware(["facilitator"]), asyn
       return res.status(403).json({ success: false, message: "Unauthorized to mark attendance for this session" });
     }
     
+    const cohortId = sessionCheck.rows[0].cohort_id;
+
     // Mark attendance for each student
     for (const { studentId, isPresent } of attendance) {
       await pool.query(
-        `INSERT INTO attendance (id, session_id, student_id, is_present, marked_by, marked_at)
-         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+        `INSERT INTO attendance (id, session_id, student_id, tenant_id, cohort_id, is_present, marked_by, marked_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
          ON CONFLICT (session_id, student_id) 
-         DO UPDATE SET is_present = $4, marked_by = $5, marked_at = CURRENT_TIMESTAMP`,
-        [require('crypto').randomUUID(), sessionId, studentId, isPresent, facilitatorId]
+         DO UPDATE SET is_present = $6, marked_by = $7, marked_at = CURRENT_TIMESTAMP`,
+        [require('crypto').randomUUID(), sessionId, studentId, tenantId, cohortId, isPresent, facilitatorId]
       );
     }
     

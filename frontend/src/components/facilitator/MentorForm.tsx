@@ -32,7 +32,7 @@ export default function MentorForm({ onClose, onSuccess, mentor }: MentorFormPro
 
   const fetchCohorts = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/facilitator/cohorts', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -51,7 +51,7 @@ export default function MentorForm({ onClose, onSuccess, mentor }: MentorFormPro
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const url = isEdit ? `/api/facilitator/mentors/${mentor.id}` : '/api/facilitator/mentors';
       const method = isEdit ? 'PUT' : 'POST';
       const body: any = { ...formData, role: 'industryMentor' };

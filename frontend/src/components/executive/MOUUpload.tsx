@@ -46,7 +46,7 @@ export const MOUUpload: React.FC = () => {
       setLoading(true);
       const response = await fetch('/api/executive/mou', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       const data = await response.json();
@@ -64,7 +64,7 @@ export const MOUUpload: React.FC = () => {
     try {
       const response = await fetch('/api/executive/mou/stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       const data = await response.json();
@@ -91,7 +91,7 @@ export const MOUUpload: React.FC = () => {
       const response = await fetch('/api/executive/mou/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         },
         body: formData
       });
@@ -124,7 +124,7 @@ export const MOUUpload: React.FC = () => {
       const response = await fetch(`/api/executive/mou/${mouId}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status, rejection_reason: rejectionReason })
@@ -150,7 +150,7 @@ export const MOUUpload: React.FC = () => {
       const response = await fetch(`/api/executive/mou/${mouId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

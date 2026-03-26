@@ -42,7 +42,7 @@ export const TrackerModification: React.FC = () => {
       setLoading(true);
       const response = await fetch('/api/student/tracker/today', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       const data = await response.json();
@@ -85,7 +85,7 @@ export const TrackerModification: React.FC = () => {
       const response = await fetch(`/api/student/tracker/${todayTracker.id}/update`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

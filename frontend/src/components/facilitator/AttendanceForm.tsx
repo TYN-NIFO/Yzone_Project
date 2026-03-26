@@ -26,8 +26,8 @@ export default function AttendanceForm({ onClose, onSuccess }: AttendanceFormPro
 
   const loadTodaySessions = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/facilitator/today-sessions', {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch('/api/facilitator/today-sessions', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -44,8 +44,8 @@ export default function AttendanceForm({ onClose, onSuccess }: AttendanceFormPro
 
   const loadSessionStudents = async (sessionId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/facilitator/session-students/${sessionId}`, {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`/api/facilitator/session-students/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await response.json();
@@ -81,13 +81,13 @@ export default function AttendanceForm({ onClose, onSuccess }: AttendanceFormPro
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const attendanceData = Object.entries(attendance).map(([studentId, isPresent]) => ({
         studentId,
         isPresent
       }));
 
-      const response = await fetch('http://localhost:5000/api/facilitator/mark-attendance', {
+      const response = await fetch('/api/facilitator/mark-attendance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

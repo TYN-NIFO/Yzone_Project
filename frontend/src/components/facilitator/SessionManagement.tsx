@@ -41,7 +41,7 @@ export default function SessionManagement({ cohortId, cohortName }: SessionManag
   const loadSessions = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/facilitator/sessions/${cohortId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -67,7 +67,7 @@ export default function SessionManagement({ cohortId, cohortName }: SessionManag
 
     try {
       setCreating(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/facilitator/sessions', {
         method: 'POST',
         headers: {
@@ -110,7 +110,7 @@ export default function SessionManagement({ cohortId, cohortName }: SessionManag
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/facilitator/sessions/${sessionId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -141,7 +141,7 @@ export default function SessionManagement({ cohortId, cohortName }: SessionManag
     
     // Load students for this session
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/facilitator/session-students/${session.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -166,7 +166,7 @@ export default function SessionManagement({ cohortId, cohortName }: SessionManag
 
     try {
       setMarkingAttendance(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       const attendanceData = Object.entries(attendance).map(([studentId, isPresent]) => ({
         studentId,

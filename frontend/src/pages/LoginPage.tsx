@@ -1,35 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Zap, LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, currentUser, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const roleRoutes: Record<string, string> = {
+    tynExecutive: '/executive',
+    facilitator: '/facilitator',
+    facultyPrincipal: '/faculty',
+    industryMentor: '/mentor',
+    student: '/student',
+  };
+
+  // Redirect when currentUser changes after login
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      navigate(roleRoutes[currentUser.role] || '/', { replace: true });
+    }
+  }, [currentUser, isAuthenticated]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await login({ email, password });
-      
-      // Navigate based on role
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const roleRoutes: Record<string, string> = {
-        tynExecutive: '/executive',
-        facilitator: '/facilitator',
-        facultyPrincipal: '/faculty',
-        industryMentor: '/mentor',
-        student: '/student',
-      };
-      
-      navigate(roleRoutes[user.role] || '/');
+      // navigation handled by useEffect above
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {

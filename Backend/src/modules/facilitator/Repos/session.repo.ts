@@ -24,21 +24,22 @@ export const createSession = async (
   session: CreateSession
 ): Promise<CreateSession> => {
 
+  // Get tenant_id from cohort
+  const cohortRes = await pool.query(
+    `SELECT tenant_id FROM cohorts WHERE id = $1`, [session.cohortId]
+  );
+  const tenantId = cohortRes.rows[0]?.tenant_id;
+
   const result = await pool.query(
-    `INSERT INTO sessions
-     (id, cohort_id, title)
-     VALUES ($1,$2,$3)
+    `INSERT INTO sessions (id, cohort_id, tenant_id, title, topic, session_date, session_time)
+     VALUES ($1, $2, $3, $4, $4, CURRENT_DATE, '00:00')
      RETURNING
- id,
- cohort_id as "cohortId",
- title,
- session_date::TEXT as "sessionDate",
- created_at as "createdAt"`,
-    [
-      session.id,
-      session.cohortId,
-      session.title
-    ]
+       id,
+       cohort_id as "cohortId",
+       title,
+       session_date::TEXT as "sessionDate",
+       created_at as "createdAt"`,
+    [session.id, session.cohortId, tenantId, session.title]
   );
 
   return result.rows[0];

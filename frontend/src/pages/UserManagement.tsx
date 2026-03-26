@@ -110,7 +110,7 @@ export default function UserManagement() {
     setFormLoading(true);
     try {
       if (editingUser) {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const body: any = {
           name: formData.name,
           email: formData.email,

@@ -32,7 +32,7 @@ export default function SubmissionManagement({ projectId, projectTitle, onClose 
   const loadSubmissions = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/facilitator/projects/${projectId}/submissions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -202,7 +202,7 @@ function ReviewModal({ submission, onClose, onSuccess }: ReviewModalProps) {
     setSubmitting(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/facilitator/submissions/${submission.id}/status`, {
         method: 'PUT',
         headers: {

@@ -31,6 +31,6 @@ export const API_ENDPOINTS = {
 };
 
 export const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

@@ -24,7 +24,7 @@ export default function TrackerForm({ onClose, onSuccess }: TrackerFormProps) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const formDataToSend = new FormData();
       
       formDataToSend.append('entryDate', formData.entryDate);

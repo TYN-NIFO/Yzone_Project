@@ -5,7 +5,8 @@ import {
   TrendingUp, 
   Activity,
   MessageSquare,
-  LogOut
+  LogOut,
+  CheckCircle
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
@@ -168,13 +169,20 @@ export default function MentorDashboard() {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{student.rank || '-'}</td>
                       <td className="px-4 py-3">
-                        <button 
-                          onClick={() => handleReview(student)}
-                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
-                        >
-                          <MessageSquare size={16} />
-                          Review
-                        </button>
+                        {student.reviewed_today ? (
+                          <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                            <CheckCircle size={16} />
+                            Reviewed Today
+                          </span>
+                        ) : (
+                          <button 
+                            onClick={() => handleReview(student)}
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                          >
+                            <MessageSquare size={16} />
+                            Review
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

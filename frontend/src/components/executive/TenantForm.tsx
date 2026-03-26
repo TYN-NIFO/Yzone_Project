@@ -28,7 +28,7 @@ const [mouFile, setMouFile] = useState<File | null>(null);
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 // First create the tenant
       const tenantResponse = await fetch('/api/executive/tenants', {
 
