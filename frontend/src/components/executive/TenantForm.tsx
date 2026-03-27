@@ -29,9 +29,8 @@ const [mouFile, setMouFile] = useState<File | null>(null);
 
     try {
       const token = sessionStorage.getItem('token');
-// First create the tenant
-      const tenantResponse = await fetch('/api/executive/tenants', {
 
+      const tenantResponse = await fetch('/api/executive/tenants', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,10 +39,15 @@ const [mouFile, setMouFile] = useState<File | null>(null);
         body: JSON.stringify(formData),
       });
 
-const tenantData = await tenantResponse.json();
+      // Safe JSON parse — handle empty responses
+      let tenantData: any = {};
+      const text = await tenantResponse.text();
+      if (text) {
+        try { tenantData = JSON.parse(text); } catch { /* ignore */ }
+      }
 
       if (!tenantResponse.ok) {
-        setError(tenantData.message || 'Failed to create tenant');
+        setError(tenantData.message || `Error ${tenantResponse.status}: Failed to create tenant`);
         setLoading(false);
         return;
       }
@@ -53,26 +57,17 @@ const tenantData = await tenantResponse.json();
         const mouFormData = new FormData();
         mouFormData.append('file', mouFile);
         mouFormData.append('title', mouTitle);
-        if (mouDescription) {
-          mouFormData.append('description', mouDescription);
-        }
+        if (mouDescription) mouFormData.append('description', mouDescription);
 
-        const mouResponse = await fetch('/api/executive/mou/upload', {
+        await fetch('/api/executive/mou/upload', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { 'Authorization': `Bearer ${token}` },
           body: mouFormData,
-        });
-
-        if (!mouResponse.ok) {
-          console.error('Failed to upload MOU, but tenant was created');
-        }
+        }).catch(() => console.error('MOU upload failed, but tenant was created'));
       }
 
       onSuccess();
       onClose();
-
     } catch (err: any) {
       setError(err.message || 'Failed to create tenant');
     } finally {

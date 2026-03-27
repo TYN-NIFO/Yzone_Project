@@ -34,7 +34,7 @@ facilitatorRoutes.get("/students/:cohortId", roleMiddleware(["facilitator"]), as
   try {
     const { cohortId } = req.params;
     const result = await pool.query(
-      "SELECT id, name, email, phone, whatsapp_number FROM users WHERE cohort_id = $1 AND role = 'student' AND deleted_at IS NULL",
+      "SELECT u.id, u.name, u.email, u.phone, u.whatsapp_number, u.cohort_id, c.name as cohort_name FROM users u JOIN cohorts c ON u.cohort_id = c.id WHERE u.cohort_id = $1 AND u.role = 'student' AND u.deleted_at IS NULL ORDER BY u.name",
       [cohortId]
     );
     res.json({ success: true, data: result.rows });

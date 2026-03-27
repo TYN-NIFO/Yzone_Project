@@ -4,11 +4,20 @@ export class TenantService {
   async createTenant(data: any) {
     const { name, institutionCode, contactEmail, contactPhone, address } = data;
 
+    // Check for duplicate institution_code
+    const existing = await pool.query(
+      `SELECT id FROM tenants WHERE institution_code = $1 AND deleted_at IS NULL`,
+      [institutionCode]
+    );
+    if (existing.rows.length > 0) {
+      throw new Error(`Institution code '${institutionCode}' already exists. Please use a different code.`);
+    }
+
     const result = await pool.query(
       `INSERT INTO tenants (name, institution_code, contact_email, contact_phone, address)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [name, institutionCode, contactEmail, contactPhone, address]
+      [name, institutionCode, contactEmail, contactPhone || null, address || null]
     );
 
     return result.rows[0];

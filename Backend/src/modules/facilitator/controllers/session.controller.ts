@@ -42,7 +42,9 @@ export const createSession = async (req: AuthRequest, res: Response) => {
 
     // Verify facilitator has access to this cohort
     const cohortCheck = await pool.query(
-      `SELECT id FROM cohorts WHERE id = $1 AND facilitator_id = $2 AND tenant_id = $3 AND deleted_at IS NULL`,
+      `SELECT id FROM cohorts 
+       WHERE id = $1 AND tenant_id = $3 AND deleted_at IS NULL
+         AND (facilitator_id = $2 OR $2 = (SELECT id FROM users WHERE cohort_id = $1 AND role = 'facilitator' AND deleted_at IS NULL LIMIT 1))`,
       [cohortId, facilitatorId, tenantId]
     );
 

@@ -56,6 +56,7 @@ export default function FacilitatorDashboard() {
   }, []);
 
   useEffect(() => {
+    if (!dashboardData) return;
     if (activeTab === 'students') {
       loadStudents();
     } else if (activeTab === 'teams') {
@@ -83,34 +84,55 @@ export default function FacilitatorDashboard() {
   const loadStudents = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const cohortId = dashboardData?.cohorts?.[0]?.id;
-      if (!cohortId) return;
-
-      const response = await fetch(`/api/facilitator/students/${cohortId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const result = await response.json();
-      if (result.success) {
-        setStudents(result.data);
+      const cohorts = dashboardData?.cohorts || [];
+      if (cohorts.length === 0) {
+        // No cohorts assigned — use students from dashboard data if available
+        if (dashboardData?.students?.length > 0) {
+          setStudents(dashboardData.students);
+        }
+        return;
       }
+
+      // Fetch students for all assigned cohorts
+      const allStudents: any[] = [];
+      for (const cohort of cohorts) {
+        const response = await fetch(`/api/facilitator/students/${cohort.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) continue;
+        const result = await response.json();
+        if (result.success && result.data) {
+          allStudents.push(...result.data);
+        }
+      }
+
+      // Deduplicate by id
+      const unique = Array.from(new Map(allStudents.map(s => [s.id, s])).values());
+      setStudents(unique);
     } catch (error) {
       console.error('Failed to load students:', error);
+      // Fallback to dashboard data
+      if (dashboardData?.students?.length > 0) {
+        setStudents(dashboardData.students);
+      }
     }
   };
 
   const loadTeams = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const cohortId = dashboardData?.cohorts?.[0]?.id;
-      if (!cohortId) return;
-
-      const response = await fetch(`/api/facilitator/teams/${cohortId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const result = await response.json();
-      if (result.success) {
-        setTeams(result.data);
+      const cohorts = dashboardData?.cohorts || [];
+      if (cohorts.length === 0) return;
+      const allTeams: any[] = [];
+      for (const cohort of cohorts) {
+        const response = await fetch(`/api/facilitator/teams/${cohort.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) continue;
+        const result = await response.json();
+        if (result.success && result.data) allTeams.push(...result.data);
       }
+      setTeams(Array.from(new Map(allTeams.map(t => [t.id, t])).values()));
     } catch (error) {
       console.error('Failed to load teams:', error);
     }
@@ -134,16 +156,18 @@ export default function FacilitatorDashboard() {
   const loadProjects = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const cohortId = dashboardData?.cohorts?.[0]?.id;
-      if (!cohortId) return;
-
-      const response = await fetch(`/api/facilitator/projects/cohort/${cohortId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const result = await response.json();
-      if (result.success) {
-        setProjects(result.data);
+      const cohorts = dashboardData?.cohorts || [];
+      if (cohorts.length === 0) return;
+      const allProjects: any[] = [];
+      for (const cohort of cohorts) {
+        const response = await fetch(`/api/facilitator/projects/cohort/${cohort.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) continue;
+        const result = await response.json();
+        if (result.success && result.data) allProjects.push(...result.data);
       }
+      setProjects(Array.from(new Map(allProjects.map(p => [p.id, p])).values()));
     } catch (error) {
       console.error('Failed to load projects:', error);
     }

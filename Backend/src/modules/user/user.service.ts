@@ -5,32 +5,31 @@ export class UserService {
   async createUser(data: any, creatorTenantId: string) {
     const { tenantId, cohortId, name, email, password, role, phone, whatsappNumber } = data;
 
-    // Validate role
     const validRoles = ['tynExecutive', 'facilitator', 'facultyPrincipal', 'industryMentor', 'student'];
-    if (!validRoles.includes(role)) {
-      throw new Error('Invalid role');
-    }
+    if (!validRoles.includes(role)) throw new Error('Invalid role');
 
-    // Check if user already exists
     const existingUser = await pool.query(
       "SELECT id FROM users WHERE email = $1 AND tenant_id = $2 AND deleted_at IS NULL",
       [email, tenantId || creatorTenantId]
     );
+    if (existingUser.rows.length > 0) throw new Error("User with this email already exists");
 
-    if (existingUser.rows.length > 0) {
-      throw new Error("User with this email already exists");
-    }
-
-    // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
     const result = await pool.query(
       `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, tenant_id, cohort_id, name, email, role, phone, whatsapp_number, is_active, created_at`,
       [tenantId || creatorTenantId, cohortId || null, name, email, passwordHash, role, phone, whatsappNumber]
     );
+
+    // If a facilitator is created with a cohort, set them as the cohort's facilitator
+    if (role === 'facilitator' && cohortId) {
+      await pool.query(
+        `UPDATE cohorts SET facilitator_id = $1 WHERE id = $2`,
+        [result.rows[0].id, cohortId]
+      );
+    }
 
     return result.rows[0];
   }
@@ -88,19 +87,43 @@ export class UserService {
            whatsapp_number = COALESCE($4, whatsapp_number),
            cohort_id = COALESCE($5, cohort_id),
            is_active = COALESCE($6, is_active)
-       WHERE id = $7 AND tenant_id = $8 AND deleted_at IS NULL
+       WHERE id = $7 AND deleted_at IS NULL
        RETURNING id, tenant_id, cohort_id, name, email, role, phone, whatsapp_number, is_active`,
-      [name, email, phone, whatsappNumber, cohortId, isActive, id, tenantId]
+      [name, email, phone, whatsappNumber, cohortId, isActive, id]
     );
 
-    return result.rows[0];
+    const user = result.rows[0];
+
+    // If facilitator's cohort changed, update cohorts.facilitator_id
+    if (user && user.role === 'facilitator' && cohortId) {
+      // Remove from old cohort
+      await pool.query(
+        `UPDATE cohorts SET facilitator_id = NULL WHERE facilitator_id = $1 AND id != $2`,
+        [id, cohortId]
+      );
+      // Set on new cohort
+      await pool.query(
+        `UPDATE cohorts SET facilitator_id = $1 WHERE id = $2`,
+        [id, cohortId]
+      );
+    }
+
+    return user;
   }
 
-  async deleteUser(id: string, tenantId: string) {
-    await pool.query(
-      `UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND tenant_id = $2`,
-      [id, tenantId]
-    );
+  async deleteUser(id: string, tenantId: string, userRole?: string) {
+    if (userRole === 'tynExecutive') {
+      // Executive can delete any user across all tenants
+      await pool.query(
+        `UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND deleted_at IS NULL`,
+        [id]
+      );
+    } else {
+      await pool.query(
+        `UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND tenant_id = $2`,
+        [id, tenantId]
+      );
+    }
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {

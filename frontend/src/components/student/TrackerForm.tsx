@@ -37,7 +37,7 @@ export default function TrackerForm({ onClose, onSuccess }: TrackerFormProps) {
         formDataToSend.append('file', file);
       }
 
-      const response = await fetch('http://localhost:5000/api/student/tracker', {
+      const response = await fetch('/api/student/tracker', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

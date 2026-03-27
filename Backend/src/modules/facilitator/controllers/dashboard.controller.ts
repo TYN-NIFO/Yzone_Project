@@ -8,8 +8,17 @@ export class FacilitatorDashboardController {
       const facilitatorId = req.user!.id;
       const tenantId = req.user!.tenantId;
 
+      // Find cohorts where this facilitator is assigned
+      // Check BOTH cohorts.facilitator_id AND users.cohort_id for robustness
       const cohorts = await pool.query(
-        `SELECT id, name FROM cohorts WHERE facilitator_id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+        `SELECT DISTINCT c.id, c.name 
+         FROM cohorts c
+         WHERE c.deleted_at IS NULL
+           AND c.tenant_id = $2
+           AND (
+             c.facilitator_id = $1
+             OR c.id = (SELECT cohort_id FROM users WHERE id = $1 AND deleted_at IS NULL)
+           )`,
         [facilitatorId, tenantId]
       );
 
