@@ -14,7 +14,8 @@ import {
   UserPlus,
   UsersRound,
   Calendar,
-  MessageCircle
+  MessageCircle,
+  FileSpreadsheet
 } from 'lucide-react';
 import { dashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +27,7 @@ import StudentForm from '../../components/facilitator/StudentForm';
 import MentorForm from '../../components/facilitator/MentorForm';
 import SessionManagement from '../../components/facilitator/SessionManagement';
 import SubmissionManagement from '../../components/facilitator/SubmissionManagement';
+import ExcelUserImport from '../../components/user/ExcelUserImport';
 
 
 export default function FacilitatorDashboard() {
@@ -50,6 +52,7 @@ export default function FacilitatorDashboard() {
   const [showSubmissionManagement, setShowSubmissionManagement] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [reminderResult, setReminderResult] = useState<string | null>(null);
+  const [showExcelImport, setShowExcelImport] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -230,13 +233,22 @@ export default function FacilitatorDashboard() {
             </div>
             <div className="flex items-center gap-3">
 {activeTab === 'students' && (
-                <button
-                  onClick={() => setShowStudentForm(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                >
-                  <UserPlus size={18} />
-                  Add Student
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowExcelImport(true)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                  >
+                    <FileSpreadsheet size={18} />
+                    Import Excel
+                  </button>
+                  <button
+                    onClick={() => setShowStudentForm(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    <UserPlus size={18} />
+                    Add Student
+                  </button>
+                </>
               )}
               {activeTab === 'teams' && (
                 <button
@@ -248,13 +260,22 @@ export default function FacilitatorDashboard() {
                 </button>
               )}
               {activeTab === 'mentors' && (
-                <button
-                  onClick={() => setShowMentorForm(true)}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-                >
-                  <UserPlus size={18} />
-                  Add Mentor
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowExcelImport(true)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                  >
+                    <FileSpreadsheet size={18} />
+                    Import Excel
+                  </button>
+                  <button
+                    onClick={() => setShowMentorForm(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                  >
+                    <UserPlus size={18} />
+                    Add Mentor
+                  </button>
+                </>
               )}
               {activeTab === 'dashboard' && (
                 <>
@@ -785,6 +806,13 @@ onSuccess={() => {
             setShowSubmissionManagement(false);
             setSelectedProject(null);
           }}
+        />
+      )}
+
+      {showExcelImport && (
+        <ExcelUserImport
+          onClose={() => setShowExcelImport(false)}
+          onSuccess={() => { setShowExcelImport(false); loadStudents(); loadMentors(); }}
         />
       )}
 

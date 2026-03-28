@@ -1,12 +1,22 @@
 import { Router } from "express";
+import multer from "multer";
 import { UserController } from "./user.controller";
 import authMiddleware from "../../middleware/auth.middleware";
 import roleMiddleware from "../../middleware/role.middleware";
 
 const router = Router();
 const userController = new UserController();
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.use(authMiddleware);
+
+// Bulk import users from Excel
+router.post(
+  "/bulk-import",
+  roleMiddleware(["tynExecutive", "facilitator"]),
+  upload.single("file"),
+  (req, res) => userController.bulkImportUsers(req, res)
+);
 
 // Create user (tynExecutive and facilitator can create users)
 router.post(

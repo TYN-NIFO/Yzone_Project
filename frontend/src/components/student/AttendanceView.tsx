@@ -35,8 +35,8 @@ export const AttendanceView: React.FC = () => {
         }
       });
       const data = await response.json();
-      if (data.stats) {
-        setAttendanceStats(data.stats);
+      if (data.data) {
+        setAttendanceStats(data.data);
       }
     } catch (error) {
       console.error('Error fetching attendance stats:', error);
@@ -51,8 +51,8 @@ export const AttendanceView: React.FC = () => {
         }
       });
       const data = await response.json();
-      if (data.sessions) {
-        setUpcomingSessions(data.sessions);
+      if (data.data) {
+        setUpcomingSessions(data.data);
       }
     } catch (error) {
       console.error('Error fetching upcoming sessions:', error);

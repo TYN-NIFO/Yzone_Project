@@ -9,6 +9,8 @@ export interface CreateUserData {
   role: 'tynExecutive' | 'facilitator' | 'facultyPrincipal' | 'industryMentor' | 'student';
   phone?: string;
   whatsappNumber?: string;
+  batch?: string;
+  department?: string;
 }
 
 export interface UpdateUserData {

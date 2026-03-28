@@ -18,6 +18,8 @@ export default function StudentForm({ onClose, onSuccess, student }: StudentForm
     phone: student?.phone || '',
     whatsapp_number: student?.whatsapp_number || '',
     cohort_id: student?.cohort_id || '',
+    batch: student?.batch || '',
+    department: student?.department || '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -156,6 +158,29 @@ export default function StudentForm({ onClose, onSuccess, student }: StudentForm
             value={formData.whatsapp_number}
             onChange={(val) => setFormData({ ...formData, whatsapp_number: val })}
           />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+              <input
+                type="text"
+                value={formData.batch}
+                onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g. 2024"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <input
+                type="text"
+                value={formData.department}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g. Computer Science"
+              />
+            </div>
+          </div>
 
           <div className="flex gap-3 pt-4">
             <button

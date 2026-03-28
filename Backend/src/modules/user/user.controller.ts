@@ -102,4 +102,21 @@ export class UserController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  async bulkImportUsers(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({ success: false, message: "No file uploaded" });
+        return;
+      }
+      const results = await userService.bulkImportFromExcel(req.file.buffer, req.user!.tenantId);
+      res.status(200).json({
+        success: true,
+        message: `Imported ${results.success.length} users. ${results.failed.length} failed.`,
+        data: results,
+      });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
 }

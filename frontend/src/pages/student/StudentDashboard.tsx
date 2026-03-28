@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import TrackerForm from '../../components/student/TrackerForm';
 import { AttendanceView } from '../../components/student/AttendanceView';
 import { TrackerModification } from '../../components/student/TrackerModification';
+import ProjectSubmitModal from '../../components/student/ProjectSubmitModal';
 
 
 export default function StudentDashboard() {
@@ -29,6 +30,8 @@ export default function StudentDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [showTrackerForm, setShowTrackerForm] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showEditTracker, setShowEditTracker] = useState(false);
+  const [submittingProject, setSubmittingProject] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -117,6 +120,13 @@ export default function StudentDashboard() {
               >
                 <Plus size={18} />
                 Submit Tracker
+              </button>
+              <button
+                onClick={() => setActiveTab('tracker-edit')}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <Edit3 size={18} />
+                Edit Tracker
               </button>
 
               {/* Notification Bell */}
@@ -489,10 +499,7 @@ export default function StudentDashboard() {
                         </div>
                       ) : (
                         <button
-                          onClick={() => {
-                            // TODO: Implement submission upload
-                            alert('Submission feature coming soon! You will be able to upload your project files here.');
-                          }}
+                          onClick={() => setSubmittingProject(project)}
                           className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-2 text-sm font-medium"
                         >
                           <Upload size={16} />
@@ -513,6 +520,13 @@ export default function StudentDashboard() {
       {showTrackerForm && (
         <TrackerForm
           onClose={() => setShowTrackerForm(false)}
+          onSuccess={loadDashboard}
+        />
+      )}
+      {submittingProject && (
+        <ProjectSubmitModal
+          project={submittingProject}
+          onClose={() => setSubmittingProject(null)}
           onSuccess={loadDashboard}
         />
       )}

@@ -322,22 +322,20 @@ facilitatorRoutes.get("/tracker-feedback/stats", roleMiddleware(["facilitator"])
 facilitatorRoutes.post("/students", roleMiddleware(["facilitator"]), async (req: AuthRequest, res) => {
   try {
     const { tenantId } = req.user!;
-    const { name, email, password, phone, whatsapp_number, cohort_id, role } = req.body;
+    const { name, email, password, phone, whatsapp_number, cohort_id, role, batch, department } = req.body;
 
     if (!name || !email || !password || !cohort_id) {
       return res.status(400).json({ error: 'Name, email, password, and cohort are required' });
     }
 
-    // Hash password
     const bcrypt = require('bcryptjs');
     const password_hash = await bcrypt.hash(password, 10);
 
-    // Create student
     const result = await pool.query(
-      `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
-       RETURNING id, name, email, role, cohort_id, created_at`,
-      [tenantId, cohort_id, name, email, password_hash, role || 'student', phone || null, whatsapp_number || null]
+      `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number, batch, department, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+       RETURNING id, name, email, role, cohort_id, batch, department, created_at`,
+      [tenantId, cohort_id, name, email, password_hash, role || 'student', phone || null, whatsapp_number || null, batch || null, department || null]
     );
 
     res.status(201).json({

@@ -19,7 +19,7 @@ export class TrackerService {
 
     if (file) {
       const uploadResult = await azureStorage.uploadFile(file, studentId, tenantId);
-      proofFileUrl = uploadResult.blob_url;
+      proofFileUrl = uploadResult?.blob_url ?? null;
     }
 
     const result = await pool.query(

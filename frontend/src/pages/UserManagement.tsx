@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, Edit, Trash2, Search, Filter, X } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Filter, X, FileSpreadsheet } from 'lucide-react';
 import { userService, CreateUserData } from '../services/user.service';
 import { dashboardService } from '../services/dashboard.service';
 import PhoneInput from '../components/common/PhoneInput';
+import ExcelUserImport from '../components/user/ExcelUserImport';
 
 interface User {
   id: string;
@@ -19,7 +20,7 @@ interface User {
 
 const emptyForm = (): CreateUserData => ({
   name: '', email: '', password: '', role: 'student',
-  phone: '', whatsappNumber: '', tenantId: '', cohortId: '',
+  phone: '', whatsappNumber: '', tenantId: '', cohortId: '', batch: '', department: '',
 });
 
 export default function UserManagement() {
@@ -35,6 +36,7 @@ export default function UserManagement() {
   const [formData, setFormData] = useState<CreateUserData>(emptyForm());
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [showExcelImport, setShowExcelImport] = useState(false);
 
   useEffect(() => { loadUsers(); loadTenants(); }, []);
   useEffect(() => { filterUsers(); }, [users, searchTerm, roleFilter]);
@@ -207,6 +209,12 @@ export default function UserManagement() {
             </select>
           </div>
           <button
+            onClick={() => setShowExcelImport(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+          >
+            <FileSpreadsheet size={20} /> Import Excel
+          </button>
+          <button
             onClick={openCreate}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
@@ -268,6 +276,13 @@ export default function UserManagement() {
           </div>
         )}
       </div>
+
+      {showExcelImport && (
+        <ExcelUserImport
+          onClose={() => setShowExcelImport(false)}
+          onSuccess={() => { setShowExcelImport(false); loadUsers(); }}
+        />
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -370,6 +385,31 @@ export default function UserManagement() {
                       <option value="">Select Cohort</option>
                       {cohorts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
+                  </div>
+                </div>
+              )}
+              {/* Batch & Department — students only */}
+              {formData.role === 'student' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+                    <input
+                      type="text"
+                      value={formData.batch || ''}
+                      onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                      placeholder="e.g. 2024"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <input
+                      type="text"
+                      value={formData.department || ''}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      placeholder="e.g. Computer Science"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
                 </div>
               )}

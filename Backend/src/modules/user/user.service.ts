@@ -1,9 +1,10 @@
 import { pool } from "../../config/db";
 import bcrypt from "bcryptjs";
+import * as XLSX from "xlsx";
 
 export class UserService {
   async createUser(data: any, creatorTenantId: string) {
-    const { tenantId, cohortId, name, email, password, role, phone, whatsappNumber } = data;
+    const { tenantId, cohortId, name, email, password, role, phone, whatsappNumber, batch, department } = data;
 
     const validRoles = ['tynExecutive', 'facilitator', 'facultyPrincipal', 'industryMentor', 'student'];
     if (!validRoles.includes(role)) throw new Error('Invalid role');
@@ -17,10 +18,12 @@ export class UserService {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING id, tenant_id, cohort_id, name, email, role, phone, whatsapp_number, is_active, created_at`,
-      [tenantId || creatorTenantId, cohortId || null, name, email, passwordHash, role, phone, whatsappNumber]
+      `INSERT INTO users (tenant_id, cohort_id, name, email, password_hash, role, phone, whatsapp_number, batch, department)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id, tenant_id, cohort_id, name, email, role, phone, whatsapp_number, batch, department, is_active, created_at`,
+      [tenantId || creatorTenantId, cohortId || null, name, email, passwordHash, role, phone, whatsappNumber,
+       role === 'student' ? (batch || null) : null,
+       role === 'student' ? (department || null) : null]
     );
 
     // If a facilitator is created with a cohort, set them as the cohort's facilitator
@@ -185,5 +188,81 @@ export class UserService {
       [cohortId, tenantId]
     );
     return result.rows;
+  }
+
+  async bulkImportFromExcel(fileBuffer: Buffer, creatorTenantId: string) {
+    const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    const results: { success: any[]; failed: { row: number; email: string; error: string }[] } = {
+      success: [],
+      failed: [],
+    };
+
+    // Cache tenant/cohort name→id lookups
+    const tenantCache: Record<string, string> = {};
+    const cohortCache: Record<string, string> = {};
+
+    const resolveTenantId = async (nameOrId: string): Promise<string> => {
+      if (!nameOrId) return creatorTenantId;
+      // If it looks like a UUID, use directly
+      if (/^[0-9a-f-]{36}$/i.test(nameOrId)) return nameOrId;
+      if (tenantCache[nameOrId]) return tenantCache[nameOrId];
+      const r = await pool.query(`SELECT id FROM tenants WHERE LOWER(name) = LOWER($1) AND deleted_at IS NULL LIMIT 1`, [nameOrId]);
+      if (r.rows.length === 0) throw new Error(`Tenant "${nameOrId}" not found`);
+      tenantCache[nameOrId] = r.rows[0].id;
+      return r.rows[0].id;
+    };
+
+    const resolveCohortId = async (nameOrId: string, tenantId: string): Promise<string | null> => {
+      if (!nameOrId) return null;
+      if (/^[0-9a-f-]{36}$/i.test(nameOrId)) return nameOrId;
+      const key = `${tenantId}:${nameOrId}`;
+      if (cohortCache[key]) return cohortCache[key];
+      const r = await pool.query(`SELECT id FROM cohorts WHERE LOWER(name) = LOWER($1) AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1`, [nameOrId, tenantId]);
+      if (r.rows.length === 0) throw new Error(`Cohort "${nameOrId}" not found`);
+      cohortCache[key] = r.rows[0].id;
+      return r.rows[0].id;
+    };
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowNum = i + 2;
+
+      try {
+        const name = String(row["name"] || row["Name"] || "").trim();
+        const email = String(row["email"] || row["Email"] || "").trim().toLowerCase();
+        const password = String(row["password"] || row["Password"] || "").trim();
+        const role = String(row["role"] || row["Role"] || "student").trim();
+        const phone = String(row["phone"] || row["Phone"] || "").trim();
+        const whatsappNumber = String(row["whatsapp"] || row["whatsapp_number"] || row["WhatsApp"] || "").trim();
+        const batch = String(row["batch"] || row["Batch"] || "").trim() || undefined;
+        const department = String(row["department"] || row["Department"] || "").trim() || undefined;
+        const tenantRaw = String(row["tenant"] || row["tenant_id"] || row["Tenant"] || "").trim();
+        const cohortRaw = String(row["cohort"] || row["cohort_id"] || row["Cohort"] || "").trim();
+
+        if (!name) throw new Error("Name is required");
+        if (!email) throw new Error("Email is required");
+        if (!password) throw new Error("Password is required");
+
+        const tenantId = await resolveTenantId(tenantRaw);
+        const cohortId = await resolveCohortId(cohortRaw, tenantId);
+
+        const user = await this.createUser(
+          { name, email, password, role, phone, whatsappNumber, cohortId, tenantId, batch, department },
+          creatorTenantId
+        );
+        results.success.push(user);
+      } catch (err: any) {
+        results.failed.push({
+          row: rowNum,
+          email: String(rows[i]["email"] || rows[i]["Email"] || ""),
+          error: err.message,
+        });
+      }
+    }
+
+    return results;
   }
 }

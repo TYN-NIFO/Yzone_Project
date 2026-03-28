@@ -37,6 +37,9 @@ router.get("/attendance/stats", roleMiddleware(["student"]), (req, res) => dashb
 router.get("/attendance/history", roleMiddleware(["student"]), (req, res) => dashboardController.getAttendanceHistory(req, res));
 router.get("/upcoming-sessions", roleMiddleware(["student"]), (req, res) => dashboardController.getUpcomingSessions(req, res));
 
+// Project submission
+router.post("/project/submit", roleMiddleware(["student"]), upload.single("file"), (req, res) => dashboardController.submitProject(req, res));
+
 // STUDENT - Generic routes with :id parameter (must come after specific routes)
 router.post("/register", StudentController.register);
 router.patch("/update/:id", StudentController.update);

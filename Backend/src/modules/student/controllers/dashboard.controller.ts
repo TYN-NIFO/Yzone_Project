@@ -441,6 +441,53 @@ export class StudentDashboardController {
     }
   }
 
+  async submitProject(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.user!.id;
+      const tenantId = req.user!.tenantId;
+      const { project_id, notes } = req.body;
+      const fileUrl = req.file ? req.file.path : null;
+
+      if (!project_id) {
+        res.status(400).json({ success: false, message: 'project_id is required' });
+        return;
+      }
+
+      // Check if submission already exists
+      const existing = await pool.query(
+        `SELECT id FROM submissions WHERE student_id = $1 AND project_id = $2`,
+        [studentId, project_id]
+      );
+
+      let result;
+      if (existing.rows.length > 0) {
+        result = await pool.query(
+          `UPDATE submissions SET
+             file_url = COALESCE($1, file_url),
+             status = 'SUBMITTED',
+             notes = COALESCE($2, notes),
+             submitted_at = CURRENT_TIMESTAMP,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE student_id = $3 AND project_id = $4
+           RETURNING *`,
+          [fileUrl, notes || null, studentId, project_id]
+        );
+      } else {
+        result = await pool.query(
+          `INSERT INTO submissions (student_id, project_id, tenant_id, file_url, status, notes, submitted_at)
+           VALUES ($1, $2, $3, $4, 'SUBMITTED', $5, CURRENT_TIMESTAMP)
+           RETURNING *`,
+          [studentId, project_id, tenantId, fileUrl, notes || null]
+        );
+      }
+
+      res.status(201).json({ success: true, submission: result.rows[0] });
+    } catch (error: any) {
+      console.error('Error submitting project:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   async getTrackerHistory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const studentId = req.user!.id;
