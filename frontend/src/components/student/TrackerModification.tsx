@@ -28,6 +28,7 @@ export const TrackerModification: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Form state
   const [tasksCompleted, setTasksCompleted] = useState('');
@@ -51,11 +52,11 @@ export const TrackerModification: React.FC = () => {
       
       if (data.tracker) {
         setTodayTracker(data.tracker);
-        // Populate form with existing data
         setTasksCompleted(data.tracker.tasks_completed);
         setLearningSummary(data.tracker.learning_summary);
         setHoursSpent(data.tracker.hours_spent);
         setChallenges(data.tracker.challenges || '');
+        setIsEditing(true); // auto-open edit mode
       }
     } catch (error) {
       console.error('Error fetching today tracker:', error);
@@ -102,10 +103,11 @@ export const TrackerModification: React.FC = () => {
         const data = await response.json();
         setTodayTracker(data.tracker);
         setIsEditing(false);
-        alert('Tracker updated successfully!');
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to update tracker');
+        alert(error.error || error.message || 'Failed to update tracker');
       }
     } catch (error) {
       console.error('Error updating tracker:', error);
@@ -160,11 +162,15 @@ export const TrackerModification: React.FC = () => {
     );
   }
 
-  const canEdit = todayTracker.entry_date.toString().slice(0, 10) === 
-    new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const canEdit = true; // backend enforces date restriction; don't block on frontend timezone issues
 
   return (
     <div className="space-y-6">
+      {saveSuccess && (
+        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm font-medium">
+          Tracker updated successfully!
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
