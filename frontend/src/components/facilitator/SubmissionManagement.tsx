@@ -148,6 +148,12 @@ export default function SubmissionManagement({ projectId, projectTitle, onClose 
                       href={submission.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => {
+                        if (!submission.file_url || submission.file_url.includes('storage.example.com')) {
+                          e.preventDefault();
+                          alert('File not available. Student may need to re-submit.');
+                        }
+                      }}
                       className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
                     >
                       <Download size={14} />

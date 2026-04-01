@@ -446,7 +446,7 @@ export class StudentDashboardController {
       const studentId = req.user!.id;
       const tenantId = req.user!.tenantId;
       const { project_id, notes } = req.body;
-      const fileUrl = req.file ? req.file.path : null;
+      const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
       if (!project_id) {
         res.status(400).json({ success: false, message: 'project_id is required' });

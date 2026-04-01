@@ -220,7 +220,20 @@ export class UserService {
       if (/^[0-9a-f-]{36}$/i.test(nameOrId)) return nameOrId;
       const key = `${tenantId}:${nameOrId}`;
       if (cohortCache[key]) return cohortCache[key];
-      const r = await pool.query(`SELECT id FROM cohorts WHERE LOWER(name) = LOWER($1) AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1`, [nameOrId, tenantId]);
+      // Normalize: trim and collapse internal whitespace
+      const normalized = nameOrId.trim().replace(/\s+/g, ' ');
+      // Try with tenant filter first
+      let r = await pool.query(
+        `SELECT id FROM cohorts WHERE TRIM(LOWER(name)) = LOWER($1) AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1`,
+        [normalized, tenantId]
+      );
+      // Fallback: search across all tenants (facilitator may not know tenant)
+      if (r.rows.length === 0) {
+        r = await pool.query(
+          `SELECT id FROM cohorts WHERE TRIM(LOWER(name)) = LOWER($1) AND deleted_at IS NULL LIMIT 1`,
+          [normalized]
+        );
+      }
       if (r.rows.length === 0) throw new Error(`Cohort "${nameOrId}" not found`);
       cohortCache[key] = r.rows[0].id;
       return r.rows[0].id;
@@ -237,10 +250,22 @@ export class UserService {
         const role = String(row["role"] || row["Role"] || "student").trim();
         const phone = String(row["phone"] || row["Phone"] || "").trim();
         const whatsappNumber = String(row["whatsapp"] || row["whatsapp_number"] || row["WhatsApp"] || "").trim();
+
+        // Normalize phone numbers — add +91 if no country code present
+        const normalizePhone = (p: string) => {
+          if (!p) return '';
+          const digits = p.replace(/\D/g, '');
+          if (p.startsWith('+')) return p; // already has country code
+          if (digits.length === 10) return `+91${digits}`; // Indian mobile
+          if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+          return p;
+        };
+        const normalizedPhone = normalizePhone(phone);
+        const normalizedWhatsapp = normalizePhone(whatsappNumber);
         const batch = String(row["batch"] || row["Batch"] || "").trim() || undefined;
         const department = String(row["department"] || row["Department"] || "").trim() || undefined;
         const tenantRaw = String(row["tenant"] || row["tenant_id"] || row["Tenant"] || "").trim();
-        const cohortRaw = String(row["cohort"] || row["cohort_id"] || row["Cohort"] || "").trim();
+        const cohortRaw = String(row["cohort"] || row["cohort_id"] || row["Cohort"] || "").trim().replace(/\s+/g, ' ');
 
         if (!name) throw new Error("Name is required");
         if (!email) throw new Error("Email is required");
@@ -250,7 +275,7 @@ export class UserService {
         const cohortId = await resolveCohortId(cohortRaw, tenantId);
 
         const user = await this.createUser(
-          { name, email, password, role, phone, whatsappNumber, cohortId, tenantId, batch, department },
+          { name, email, password, role, phone: normalizedPhone, whatsappNumber: normalizedWhatsapp, cohortId, tenantId, batch, department },
           creatorTenantId
         );
         results.success.push(user);

@@ -7,25 +7,26 @@ import { MOUController } from "../controllers/mou.controller";
 import authMiddleware from "../../../middleware/auth.middleware";
 import roleMiddleware from "../../../middleware/role.middleware";
 import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 const dashboardController = new DashboardController();
 const mentorController = new MentorController();
 
-// Configure multer for file uploads
+// Configure multer for MOU file uploads — save to disk
+const mouUploadDir = path.join(__dirname, '../../../../uploads/mou');
+if (!fs.existsSync(mouUploadDir)) fs.mkdirSync(mouUploadDir, { recursive: true });
+
 const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    // Allow PDF and common document formats
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF and Word documents are allowed'));
-    }
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, mouUploadDir),
+    filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only PDF and Word documents are allowed'));
   }
 });
 

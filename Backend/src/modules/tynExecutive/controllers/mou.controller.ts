@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { MOUService } from '../services/mou.service';
-import StorageService from '../../../core/storage.service';
 import { AuthRequest } from '../../../types/custom-request';
 
 export class MOUController {
@@ -18,15 +17,8 @@ export class MOUController {
         return res.status(400).json({ error: 'Title is required' });
       }
 
-      // Upload file to Azure Blob Storage (or save locally if Azure not configured)
-      let fileUrl = '';
-      try {
-        const uploadResult = await StorageService.upload(file);
-        fileUrl = uploadResult.url;
-      } catch (error) {
-        // Fallback: save file URL as local path
-        fileUrl = `/uploads/mou/${file.originalname}`;
-      }
+      // Save file locally (Azure not configured)
+      const fileUrl = `/uploads/mou/${file.filename}`;
 
       // Create MOU record
       const mou = await MOUService.createMOU(

@@ -382,6 +382,12 @@ export const MOUUpload: React.FC = () => {
                         href={mou.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => {
+                          if (!mou.file_url || mou.file_url.includes('storage.example.com')) {
+                            e.preventDefault();
+                            alert('File not available. Please re-upload this MOU.');
+                          }
+                        }}
                         className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200"
                       >
                         View
