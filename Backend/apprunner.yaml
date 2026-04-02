@@ -19,3 +19,6 @@ run:
       value: production
     - name: DATABASE_URL
       value: postgresql://neondb_owner:npg_HrfPWce1bV9y@ep-divine-sea-a111j0xl-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+  secrets:
+    - name: DATABASE_URL
+      value-from: arn:aws:secretsmanager:ap-south-1:123456789012:secret:my-db-url
