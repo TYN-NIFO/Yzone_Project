@@ -96,7 +96,7 @@ export default function UserManagement() {
       name: user.name,
       email: user.email,
       password: '',
-      role: user.role,
+      role: user.role as CreateUserData['role'],
       phone: user.phone || '',
       whatsappNumber: user.whatsapp_number || '',
       tenantId: '',
