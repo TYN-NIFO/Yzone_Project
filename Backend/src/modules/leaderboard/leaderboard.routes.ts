@@ -20,7 +20,7 @@ router.get("/:cohortId", async (req, res) => {
 
 router.get("/:cohortId/my-rank", roleMiddleware(["student"]), async (req, res) => {
     try {
-        const data = await getStudentRank(req.user!.id, req.params.cohortId);
+        const data = await getStudentRank(req.user!.id, req.params.cohortId as string);
         res.json({ success: true, data });
     } catch (err) {
         res.status(500).json({ success: false, message: "Failed to fetch rank" });

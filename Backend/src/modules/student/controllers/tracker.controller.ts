@@ -1,69 +1,59 @@
 import { Request, Response } from "express";
-import { pool } from "../../../config/db";
-import { v4 as uuidv4 } from "uuid";
+import multer from "multer";
+import * as TrackerService from "../services/tracker.service";
 
-class TrackerController {
-  // Add tracker
-  static async add(req: Request, res: Response) {
+export const upload = multer({ storage: multer.memoryStorage() });
+
+export const submitTracker = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { student_id, project_id, week, learned_today, issues, plan_for_tomorrow, status } = req.body;
-      const id = uuidv4();
-
-      const result = await pool.query(
-        `INSERT INTO student_trackers
-        (id, student_id, project_id, week, learned_today, issues, plan_for_tomorrow, status)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-        RETURNING *`,
-        [id, student_id, project_id, week, learned_today, issues, plan_for_tomorrow, status]
-      );
-
-      res.status(201).json({ message: "Tracker added", tracker: result.rows[0] });
+        const { tasksCompleted, learningSummary, hoursSpent, challenges, entryDate } = req.body;
+        const studentId = req.user!.id;
+        const cohortId = req.user!.cohortId!;
+        const tenantId = req.user!.tenantId!;
+        const data = await TrackerService.submitTracker({
+            studentId, cohortId, tenantId,
+            tasksCompleted, learningSummary,
+            hoursSpent: parseFloat(hoursSpent),
+            challenges, entryDate,
+        });
+        res.status(201).json({ success: true, data });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to add tracker" });
+        res.status(500).json({ success: false, message: "Failed to submit tracker" });
     }
-  }
+};
 
-  // Update tracker
-  static async update(req: Request, res: Response) {
+export const getMyTrackers = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const { learned_today, issues, plan_for_tomorrow, status } = req.body;
-
-      const result = await pool.query(
-        `UPDATE student_trackers SET
-          learned_today = COALESCE($1, learned_today),
-          issues = COALESCE($2, issues),
-          plan_for_tomorrow = COALESCE($3, plan_for_tomorrow),
-          status = COALESCE($4, status)
-        WHERE id = $5
-        RETURNING *`,
-        [learned_today, issues, plan_for_tomorrow, status, id]
-      );
-
-      if (result.rows.length === 0) return res.status(404).json({ error: "Tracker not found" });
-
-      res.json({ message: "Tracker updated", tracker: result.rows[0] });
+        const data = await TrackerService.getMyTrackers(req.user!.id);
+        res.json({ success: true, data });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to update tracker" });
+        res.status(500).json({ success: false, message: "Failed to fetch trackers" });
     }
-  }
+};
 
-  // Get trackers by student
-  static async getByStudent(req: Request, res: Response) {
+export const getCohortTrackers = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params; // student_id
-      const result = await pool.query(
-        `SELECT * FROM student_trackers WHERE student_id = $1 ORDER BY week`,
-        [id]
-      );
-      res.json(result.rows);
+        const data = await TrackerService.getTrackersByCohort(
+            req.params.cohortId as string,
+            req.user!.tenantId!
+        );
+        res.json({ success: true, data });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to fetch trackers" });
+        res.status(500).json({ success: false, message: "Failed to fetch cohort trackers" });
     }
-  }
-}
+};
 
-export default TrackerController;
+export const rateTracker = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { rating, comment } = req.body;
+        const data = await TrackerService.submitMentorRating(
+            req.params.entryId as string,
+            rating,
+            comment,
+            req.user!.id
+        );
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to rate tracker" });
+    }
+};

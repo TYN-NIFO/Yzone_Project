@@ -30,7 +30,7 @@ export const uploadToAzureBlob = async (
 
     const containerName = process.env.AZURE_CONTAINER_NAME || "yzone-tracker-files";
     const containerClient = blobServiceClient.getContainerClient(containerName);
-    await containerClient.createIfNotExists({ access: "private" });
+    await containerClient.createIfNotExists();
 
     const ext = originalName.split(".").pop();
     const blobName = `${uuidv4()}.${ext}`;

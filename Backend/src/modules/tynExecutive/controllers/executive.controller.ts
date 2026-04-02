@@ -13,7 +13,7 @@ export const getAllTenants = async (req: Request, res: Response): Promise<void> 
 
 export const getTenant = async (req: Request, res: Response): Promise<void> => {
     try {
-        const data = await ExecService.getTenantById(req.params.id);
+        const data = await ExecService.getTenantById(req.params.id as string);
         if (!data) { res.status(404).json({ success: false, message: "Tenant not found" }); return; }
         res.json({ success: true, data });
     } catch (err) {
@@ -41,7 +41,7 @@ export const createTenant = async (req: Request, res: Response): Promise<void> =
 
 export const getCohorts = async (req: Request, res: Response): Promise<void> => {
     try {
-        const tenantId = req.params.tenantId || req.query.tenantId as string;
+        const tenantId = (req.params.tenantId as string) || (req.query.tenantId as string);
         if (!tenantId) { res.status(400).json({ success: false, message: "tenantId required" }); return; }
         const data = await ExecService.getCohortsForTenant(tenantId);
         res.json({ success: true, data });
