@@ -137,6 +137,7 @@
     "yn": "^3.1.1"
   },
   "scripts": {
+    "build": "tsc",
     "dev": "ts-node-dev --respawn src/server.ts"
   },
   "keywords": [],
