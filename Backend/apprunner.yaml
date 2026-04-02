@@ -1,15 +1,22 @@
 version: 1.0
 runtime: nodejs22
+
 build:
   commands:
     build:
-      - npm install
+      - npm ci
       - npm run build
+
 run:
   command: node dist/server.js
+
   network:
     port: 5000
     env: PORT
+
   env:
     - name: NODE_ENV
       value: production
+  secrets:
+    - name: DB_PASSWORD
+      value-from: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
